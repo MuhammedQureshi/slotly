@@ -83,23 +83,26 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
   // TODO: if service is passed, set defaultValues from it
   //       (this is how the same form works for both add and edit)
   const onSubmit = async (data: FormValues) => {
-    // TODO: build FormData
-    const formData = new FormData()
-    formData.append('name', data.name)
-    formData.append('duration_minutes', data.duration_minutes.toString())
-    formData.append('price', data.price ?? '')
-    formData.append('description', data.description ?? '')
-    // TODO: append bookingPageId
-    formData.append('booking_page_id', bookingPageId)
-    // TODO: if service exists, call updateService — otherwise call createService
-        const result = service
-          ? await updateService(formData)
-          : await createService(formData)
+  const formData = new FormData()
 
-        if (!result?.error) {
-          onSuccess()
-}
+  formData.append('name', data.name)
+  formData.append('duration_minutes', data.duration_minutes.toString())
+  formData.append('price', data.price ?? '')
+  formData.append('description', data.description ?? '')
+  formData.append('booking_page_id', bookingPageId)
+
+  if (service) {
+    formData.append('service_id', service.id)
   }
+
+  const result = service
+    ? await updateService(formData) 
+    : await createService(formData)
+
+  if (!result?.error) {
+    onSuccess()
+  }
+}
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 p-4">

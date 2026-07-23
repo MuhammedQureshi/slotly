@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { deleteService } from '@/app/(dashboard)/services/actions'
 
 import {
   Sheet,
@@ -36,6 +37,17 @@ export default function ServiceCard({
 }: {
   service: Service
 }) {
+
+  const handleDelete = async () => {
+  const formData = new FormData()
+  formData.append('service_id', service.id)
+
+  const result = await deleteService(formData)
+
+  if (!result?.error) {
+    setIsDeleteOpen(false)
+  }
+}
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 
@@ -69,12 +81,18 @@ export default function ServiceCard({
           )}
         </div>
 
+        <Button
+          variant="outline"
+          onClick={() => setIsEditOpen(true)}
+        >
+          Edit
+        </Button>
+
         <div className="flex flex-col items-end gap-2">
           <Sheet
             open={isEditOpen}
             onOpenChange={setIsEditOpen}
           >
-            <SheetTrigger render={<Button variant="outline">Edit</Button>} />
             <SheetContent>
               <SheetHeader>
                 <SheetTitle>
@@ -106,11 +124,17 @@ export default function ServiceCard({
             </SheetContent>
           </Sheet>
 
-          <Dialog
-            open={isDeleteOpen}
-            onOpenChange={setIsDeleteOpen}
+          <Button
+            variant="destructive"
+            onClick={() => setIsDeleteOpen(true)}
           >
-            <DialogTrigger render={<Button variant="destructive">Delete</Button>} />
+            Delete
+          </Button>
+
+          <Dialog
+              open={isDeleteOpen}
+              onOpenChange={setIsDeleteOpen}
+          >
 
             <DialogContent>
               <DialogHeader>
@@ -135,7 +159,7 @@ export default function ServiceCard({
                   Cancel
                 </Button>
 
-                <Button variant="destructive">
+                <Button variant="destructive" onClick={handleDelete}>
                   Delete
                 </Button>
               </DialogFooter>
