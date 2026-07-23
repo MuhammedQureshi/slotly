@@ -52,13 +52,13 @@ const { data: services } = await supabase
         These are the services that your customers can book.
       </p> 
       <CreateServiceSheet bookingPageId={bookingPage.id} />
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      {services?.map((service) => (
-        <ServiceCard
-          key={service.id}
-          service={service}
-        />
-      ))}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {services?.map((service) => (
+          <ServiceCard
+            key={service.id}
+            service={service}
+          />
+        ))}
     </div>
     </div>
   )

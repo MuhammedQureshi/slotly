@@ -58,7 +58,7 @@ export default function ServiceCard({
 
   return (
     <div className="rounded-lg border bg-card p-5 shadow-sm">
-      <div className="flex items-start justify-between">
+      <div className="md:flex items-start justify-between">
         <div>
           <h3 className="text-lg font-semibold">
             {service.name}
@@ -80,7 +80,8 @@ export default function ServiceCard({
             </p>
           )}
         </div>
-
+  
+<div className="flex flex-col items-end gap-3">
         <Button
           variant="outline"
           onClick={() => setIsEditOpen(true)}
@@ -168,5 +169,6 @@ export default function ServiceCard({
         </div>
       </div>
     </div>
+  </div>
   )
 }
