@@ -71,7 +71,7 @@ export default function MyPageForm() {
   }
 
   return (
-    <div className="max-w-lg mx-auto mt-12 p-6 bg-white rounded-xl shadow">
+    <div className="max-w-lg mx-auto p-6 bg-white rounded-xl shadow">
       <h1 className="text-2xl font-semibold mb-1">Set up your booking page</h1>
       <p className="text-gray-500 text-sm mb-6">
         This creates your public page at <span className="font-mono">/book/your-slug</span>
