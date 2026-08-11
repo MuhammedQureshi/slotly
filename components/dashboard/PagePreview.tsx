@@ -12,8 +12,7 @@ type Props = {
     id: string
     name: string
     duration: number
-    priceType: 'fixed' | 'free' | 'ask'
-    price?: number
+    price_pence?: number
   }[]
 }
 
@@ -106,11 +105,7 @@ export default function BookingPagePreview({
                   </div>
 
                   <span className="font-semibold">
-                    {service.priceType === 'fixed'
-                      ? `£${service.price}`
-                      : service.priceType === 'free'
-                      ? 'Free'
-                      : 'Ask'}
+                    {service.price_pence ? `£${(service.price_pence / 100).toFixed(2)}` : 'Free'}
                   </span>
                 </div>
               ))
@@ -123,7 +118,7 @@ export default function BookingPagePreview({
 
           <button
             type="button"
-            className="mt-5 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-full text-sm font-medium text-white"
+            className="mt-5 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-full text-sm font-medium text-white hover:opacity-90"
             style={{ background: accent }}
           >
             Confirm booking

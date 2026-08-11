@@ -12,6 +12,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 import ServiceForm from './ServiceForm'
+import { CirclePlus } from 'lucide-react'
 
 type Props = {
   bookingPageId: string
@@ -26,8 +27,9 @@ export default function CreateServiceSheet({
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
         render={
-          <Button>
+          <Button size="lg" className="w-fit justify-center">
             Add Service
+            <CirclePlus className="ml-2 h-4 w-4" />
           </Button>
         }
       />

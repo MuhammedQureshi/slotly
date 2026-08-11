@@ -47,11 +47,17 @@ const { data: services } = await supabase
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-2xl font-bold">Services</h2>
-      <p className="text-muted-foreground">
-        These are the services that your customers can book.
-      </p> 
-      <CreateServiceSheet bookingPageId={bookingPage.id} />
+      <div className="flex items-center justify-between">
+        <div>        
+          <h2 className="text-2xl font-bold">Services</h2>
+          <p className="text-muted-foreground">
+            These are the services that your customers can book.
+          </p> 
+        </div>
+        <div>
+          <CreateServiceSheet bookingPageId={bookingPage.id} />
+        </div>
+      </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {services?.map((service) => (
           <ServiceCard

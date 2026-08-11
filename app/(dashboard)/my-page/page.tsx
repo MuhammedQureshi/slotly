@@ -46,6 +46,7 @@ export default async function Mypage() {
     .eq('booking_page_id', bookingPage.id)
     .order('sort_order')  
 
+
   return (
     <div className="grid gap-8 lg:grid-cols-2">
       <MyPageForm />
