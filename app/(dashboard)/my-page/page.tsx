@@ -1,3 +1,4 @@
+import AvailabilityEditor from '@/components/dashboard/AvailabilityEditor'
 import MyPageForm from '@/components/dashboard/MyPageForm'
 import PagePreview from '@/components/dashboard/PagePreview'
 import { auth } from '@clerk/nextjs/server'
@@ -48,7 +49,7 @@ export default async function Mypage() {
 
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
+    <div className="grid gap-8 lg:grid-cols-1">
       <MyPageForm />
       <PagePreview 
       slug={bookingPage.slug}
@@ -64,6 +65,7 @@ export default async function Mypage() {
           accent="#000"
           services={services ?? []}
       />
+      <AvailabilityEditor bookingPageId={bookingPage.id} />
     </div>
   )
 }
