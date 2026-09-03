@@ -37,9 +37,6 @@ export default async function Mypage() {
     .eq('user_id', user.id)
     .single()
 
-  if (!bookingPage) {
-    return <div>No booking page found.</div>
-  }
 
   const { data: services } = await supabase
     .from('services')
