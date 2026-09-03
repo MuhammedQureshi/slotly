@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { generateSlug } from '@/lib/utils'
+import { revalidatePath } from 'next/cache'
 
 function getSupabase() {
   return createClient(
@@ -93,4 +94,64 @@ export async function saveBookingPage(formData: FormData) {
   }
 
   redirect('/services')
+}
+
+export async function saveAvailability(formData: FormData) {
+  const { userId: clerkUserId } = await auth()
+  if (!clerkUserId) {
+    return { error: 'You must be logged in.' }
+  }
+
+  const supabase = getSupabase()
+
+  const { data: user, error: userError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('clerk_user_id', clerkUserId)
+    .single()
+
+  if (userError || !user) {
+    return { error: 'User account not found.' }
+  }
+
+  const days = JSON.parse(formData.get('days') as string);
+  
+  const bookingPageId = formData.get('booking_page_id') as string;
+  const { data: bookingPage, error: bookingPageError } = await supabase
+    .from('booking_pages')
+    .select('id')
+    .eq('id', bookingPageId)
+    .eq('user_id', user.id) // ownership check
+    .single();
+
+  if (bookingPageError || !bookingPage) {
+    return { error: 'Booking page not found or you do not have permission to edit it.' }
+  }
+
+  const { error: deleteError } = await supabase
+    .from('availability_rules')
+    .delete()
+    .eq('booking_page_id', bookingPageId)
+
+  if (deleteError) {
+    return { error: 'Error deleting existing availability. Please try again.' }
+  }
+
+  const { error: insertError } = await supabase
+    .from('availability_rules')
+    .insert(days.map((day: { day_of_week: number; is_active: boolean; start_time: string; end_time: string }) => ({
+      booking_page_id: bookingPageId,
+      day_of_week: day.day_of_week,
+      is_active: day.is_active,
+      start_time: day.start_time,
+      end_time: day.end_time,
+    })))
+
+  if (insertError) {
+    return { error: 'Error saving availability. Please try again.' }
+  }
+
+  // Revalidate the path to ensure the new availability is reflected
+  revalidatePath(`/my-page`);
+
 }

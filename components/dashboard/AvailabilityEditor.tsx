@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Button } from "../ui/button"
+import { saveAvailability } from "@/app/(dashboard)/my-page/actions"
 
 type DayRule = {
   day_of_week: number  // 0 = Sun, 1 = Mon ... 6 = Sat
@@ -58,6 +59,20 @@ export default function AvailabilityEditor({ bookingPageId }: { bookingPageId: s
     ))
   }
 
+  const handleSave = async () => {
+    const formData = new FormData()
+    formData.append('booking_page_id', bookingPageId)
+    formData.append('days', JSON.stringify(days))
+
+    const result = await saveAvailability(formData);
+
+    if (result?.error) {
+      console.error('Error saving availability:', result.error);
+    } else {
+      console.log('Availability saved successfully');
+    }
+  }
+
   return (
     <div className="bg-card p-10 rounded-2xl flex flex-col gap-4 items-center">
       <h2 className="text-lg font-semibold">Availability</h2>
@@ -70,25 +85,31 @@ export default function AvailabilityEditor({ bookingPageId }: { bookingPageId: s
           // each one maps over timeOptions
           // onChange calls updateTime with the right field
             <div className="flex gap-2"> 
-              <Select>
+              <Select
+                value={day.start_time}
+                onValueChange={val => val && updateTime(day.day_of_week, 'start_time', val)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Start Time" />
                 </SelectTrigger>
                 <SelectContent>
                   {timeOptions.map(time => (
-                    <SelectItem key={time.value} value={time.value} onClick={() => updateTime(day.day_of_week, 'start_time', time.value)}>
+                    <SelectItem key={time.value} value={time.value}>
                       {time.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select>
+              <Select
+                value={day.end_time}
+                onValueChange={val => val && updateTime(day.day_of_week, 'end_time', val)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="End Time" />
                 </SelectTrigger>
                 <SelectContent>
                   {timeOptions.map(time => (
-                    <SelectItem key={time.value} value={time.value} onClick={() => updateTime(day.day_of_week, 'end_time', time.value)}>
+                    <SelectItem key={time.value} value={time.value}>
                       {time.label}
                     </SelectItem>
                   ))}
@@ -99,7 +120,9 @@ export default function AvailabilityEditor({ bookingPageId }: { bookingPageId: s
       </div>
     ))}
       {/* TODO: a save button — we'll wire up the action after */}
-      <Button className="mt-4" onClick={() => console.log(days)}>Save</Button>
+      <Button className="mt-4" onClick={handleSave}>
+        Save
+      </Button>
     </div>
   )
 } 
