@@ -53,7 +53,6 @@ export default async function Mypage() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-1">
-      <MyPageForm />
       <PagePreview 
       slug={bookingPage.slug}
           initials={bookingPage.business_name
