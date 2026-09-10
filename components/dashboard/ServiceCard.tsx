@@ -8,7 +8,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from '@/components/ui/sheet'
 
 import {
@@ -17,11 +16,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 
 import { Button } from '@/components/ui/button'
 import ServiceForm from './ServiceForm'
+import { Clock, Pencil, Trash2 } from 'lucide-react'
 
 type Service = {
   id: string
@@ -37,19 +36,19 @@ export default function ServiceCard({
 }: {
   service: Service
 }) {
-
-  const handleDelete = async () => {
-  const formData = new FormData()
-  formData.append('service_id', service.id)
-
-  const result = await deleteService(formData)
-
-  if (!result?.error) {
-    setIsDeleteOpen(false)
-  }
-}
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+
+  const handleDelete = async () => {
+    const formData = new FormData()
+    formData.append('service_id', service.id)
+
+    const result = await deleteService(formData)
+
+    if (!result?.error) {
+      setIsDeleteOpen(false)
+    }
+  }
 
   const formattedPrice =
     service.price_pence === null
@@ -57,51 +56,54 @@ export default function ServiceCard({
       : `£${(service.price_pence / 100).toFixed(2)}`
 
   return (
-    <div className="rounded-lg border bg-card p-5 shadow-sm">
-      <div className="md:flex items-start justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">
+    <article className="group flex h-full flex-col rounded-2xl border border-stone-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
+      <div className="flex flex-1 items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="truncate text-lg font-semibold tracking-tight text-stone-950">
             {service.name}
-          </h3>
+          </h2>
 
-          <div className="mt-2 flex items-center gap-2">
-            <span className="rounded-full bg-muted px-2 py-1 text-xs">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-600">
+              <Clock aria-hidden="true" className="size-3.5" />
               {service.duration_minutes} min
             </span>
 
-            <span className="rounded-xl bg-muted px-2 py-1 text-xs text-blue-600">
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
               {formattedPrice}
             </span>
           </div>
 
           {service.description && (
-            <p className="mt-3 text-sm text-muted-foreground">
+            <p className="mt-4 line-clamp-3 text-sm leading-6 text-stone-600">
               {service.description}
             </p>
           )}
         </div>
-  
-<div className="flex flex-col items-end gap-3">
+      </div>
+
+      <div className="mt-6 flex items-center gap-2 border-t border-stone-100 pt-4">
         <Button
           variant="outline"
+          className="flex-1 border-stone-200"
           onClick={() => setIsEditOpen(true)}
         >
+          <Pencil aria-hidden="true" />
           Edit
         </Button>
 
-        <div className="flex flex-col items-end gap-2">
           <Sheet
             open={isEditOpen}
             onOpenChange={setIsEditOpen}
           >
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>
+            <SheetContent className="sm:max-w-lg">
+              <SheetHeader className="border-b border-stone-200 px-6 py-5">
+                <SheetTitle className="text-lg font-semibold">
                   Edit {service.name}
                 </SheetTitle>
               </SheetHeader>
 
-              <div className="mt-6">
+              <div className="overflow-y-auto">
                 <ServiceForm
                   bookingPageId={service.booking_page_id}
                   service={{
@@ -109,7 +111,7 @@ export default function ServiceCard({
                     name: service.name,
                     duration_minutes:
                       service.duration_minutes,
-                    price: service.price_pence
+                    price: service.price_pence !== null
                       ? (
                           service.price_pence / 100
                         ).toString()
@@ -127,8 +129,10 @@ export default function ServiceCard({
 
           <Button
             variant="destructive"
+            className="flex-1"
             onClick={() => setIsDeleteOpen(true)}
           >
+            <Trash2 aria-hidden="true" />
             Delete
           </Button>
 
@@ -166,9 +170,7 @@ export default function ServiceCard({
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
       </div>
-    </div>
-  </div>
+    </article>
   )
 }

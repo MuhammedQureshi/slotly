@@ -1,5 +1,5 @@
 'use client'
-import { Clock, Lock } from 'lucide-react'
+import { ChevronRight, Clock, Lock } from 'lucide-react'
 type Props = {
   slug: string
   initials: string
@@ -11,8 +11,8 @@ type Props = {
   services: {
     id: string
     name: string
-    duration: number
-    price_pence?: number
+    duration_minutes: number
+    price_pence: number | null
   }[]
 }
 
@@ -28,101 +28,87 @@ export default function BookingPagePreview({
 }: Props) {
   return (
   <div className="min-w-0">
-    <div className="overflow-hidden rounded-[10px] border border-border bg-card shadow-card">
+    <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
       {/* Fake browser bar */}
-      <div className="flex items-center gap-3 border-b border-border bg-[#f9fafb] px-4 py-3">
+      <div className="flex items-center gap-3 border-b border-stone-200 bg-stone-100/80 px-4 py-3">
         <div className="flex gap-1.5">
           <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
           <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
           <span className="h-3 w-3 rounded-full bg-[#28c840]" />
         </div>
 
-        <div className="mx-auto flex w-full max-w-md items-center gap-2 rounded-md border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
+        <div className="mx-auto flex w-full max-w-md items-center gap-2 rounded-md border border-stone-200 bg-white px-3 py-1 text-xs text-stone-500 shadow-xs">
           <Lock className="h-3 w-3" />
           <span className="truncate">slotly.co/{slug}</span>
         </div>
       </div>
 
-      <div className="bg-background p-6">
-        <div className="mx-auto max-w-md rounded-[10px] border border-border bg-card p-6 shadow-card">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
+      <div className="bg-slate-50 p-4 sm:p-8">
+        <div className="mx-auto max-w-md">
+          <div className="border-b border-slate-200 pb-6 text-center">
+            <span className="mx-auto flex size-12 items-center justify-center rounded-full text-sm font-semibold text-white" style={{ backgroundColor: accent }}>
               {initials}
             </span>
 
-            <div>
-              <p className="text-lg font-bold leading-tight">
+            <div className="mt-3">
+              <p className="text-xl font-semibold leading-tight tracking-tight text-slate-950">
                 {businessName || 'Your business'}
               </p>
 
-              <span className="mt-0.5 inline-flex rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              <span className="mt-2 inline-flex rounded-full bg-slate-200/70 px-2.5 py-1 text-[10px] font-medium text-slate-600 capitalize">
                 {businessType}
               </span>
             </div>
-          </div>
 
           {tagline && (
-            <p className="mt-3 text-sm italic text-muted-foreground">
+            <p className="mt-3 text-sm italic text-slate-500">
               {tagline}
             </p>
           )}
 
           {description && (
-            <p className="mt-3 text-sm leading-relaxed text-foreground">
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-slate-600">
               {description}
             </p>
           )}
+          </div>
 
-          <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Choose a service
-          </p>
+          <p className="mt-6 text-sm font-semibold text-slate-950">Select a service</p>
+          <p className="mt-0.5 text-xs text-slate-500">Choose the appointment you would like to book.</p>
 
-          <div className="mt-2 space-y-2">
+          <div className="mt-3 space-y-2.5">
             {services.length > 0 ? (
-              services.slice(0, 3).map((service, index) => (
+              services.slice(0, 3).map((service) => (
                 <div
                   key={service.id}
-                  className={`flex items-center justify-between rounded-md border p-3 text-sm ${
-                    index === 0
-                      ? 'border-l-[3px] bg-(--accent)/40'
-                      : 'border-border bg-card'
-                  }`}
-                  style={
-                    index === 0
-                      ? { borderLeftColor: accent }
-                      : undefined
-                  }
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 text-sm shadow-xs"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">
+                  <div className="min-w-0">
+                    <span className="block truncate font-semibold text-slate-900">
                       {service.name}
                     </span>
 
-                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                    <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-slate-500">
                       <Clock className="h-2.5 w-2.5" />
-                      {service.duration} min
+                      {service.duration_minutes} min
                     </span>
                   </div>
 
-                  <span className="font-semibold">
-                    {service.price_pence ? `£${(service.price_pence / 100).toFixed(2)}` : 'Free'}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="font-semibold text-slate-950">
+                      {service.price_pence === null ? 'Free' : `£${(service.price_pence / 100).toFixed(2)}`}
+                    </span>
+                    <ChevronRight aria-hidden="true" className="size-3.5 text-slate-400" />
+                  </div>
                 </div>
               ))
             ) : (
-              <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
+              <div className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500">
                 No services added yet.
               </div>
             )}
           </div>
 
-          <button
-            type="button"
-            className="mt-5 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-full text-sm font-medium text-white hover:opacity-90"
-            style={{ background: accent }}
-          >
-            Confirm booking
-          </button>
         </div>
       </div>
     </div>

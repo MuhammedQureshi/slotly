@@ -71,9 +71,9 @@ export default function MyPageForm() {
   }
 
   return (
-    <div className="max-w-lg mx-auto p-6 bg-white rounded-xl shadow">
-      <h1 className="text-2xl font-semibold mb-1">Set up your booking page</h1>
-      <p className="text-gray-500 text-sm mb-6">
+    <div className="mx-auto max-w-xl rounded-2xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
+      <h2 className="text-xl font-semibold tracking-tight text-stone-950">Set up your booking page</h2>
+      <p className="mb-7 mt-2 text-sm leading-6 text-stone-600">
         This creates your public page at <span className="font-mono">/book/your-slug</span>
       </p>
 
@@ -81,11 +81,11 @@ export default function MyPageForm() {
 
         {/* Business Name */}
         <div>
-          <label className="block text-sm font-medium mb-1">Business name *</label>
+          <label className="mb-1.5 block text-sm font-medium text-stone-800">Business name *</label>
           <input
             {...register('business_name')}
             placeholder="Jay's Barbershop"
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+            className="h-10 w-full rounded-lg border border-stone-200 px-3 text-sm outline-none transition focus:border-stone-400 focus:ring-3 focus:ring-stone-200"
           />
           {/* errors.business_name comes from Zod if the field is empty */}
           {errors.business_name && (
@@ -95,10 +95,10 @@ export default function MyPageForm() {
 
         {/* Business Type */}
         <div>
-          <label className="block text-sm font-medium mb-1">Business type *</label>
+          <label className="mb-1.5 block text-sm font-medium text-stone-800">Business type *</label>
           <select
             {...register('business_type')}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+            className="h-10 w-full rounded-lg border border-stone-200 bg-white px-3 text-sm outline-none transition focus:border-stone-400 focus:ring-3 focus:ring-stone-200"
           >
             <option value="">Select a type...</option>
             {BUSINESS_TYPES.map((type) => (
@@ -112,22 +112,22 @@ export default function MyPageForm() {
 
         {/* Phone (optional) */}
         <div>
-          <label className="block text-sm font-medium mb-1">Phone <span className="text-gray-400">(optional)</span></label>
+          <label className="mb-1.5 block text-sm font-medium text-stone-800">Phone <span className="font-normal text-stone-400">(optional)</span></label>
           <input
             {...register('phone')}
             placeholder="+44 7700 900000"
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+            className="h-10 w-full rounded-lg border border-stone-200 px-3 text-sm outline-none transition focus:border-stone-400 focus:ring-3 focus:ring-stone-200"
           />
         </div>
 
         {/* Description (optional, max 200 chars) */}
         <div>
-          <label className="block text-sm font-medium mb-1">Description <span className="text-gray-400">(optional)</span></label>
+          <label className="mb-1.5 block text-sm font-medium text-stone-800">Description <span className="font-normal text-stone-400">(optional)</span></label>
           <textarea
             {...register('description')}
             rows={3}
             placeholder="Tell customers a little about your business..."
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none"
+            className="w-full resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm outline-none transition focus:border-stone-400 focus:ring-3 focus:ring-stone-200"
           />
           {errors.description && (
             <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>
@@ -147,7 +147,7 @@ export default function MyPageForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-black text-white rounded-lg py-2 text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition"
+          className="h-10 w-full rounded-lg bg-stone-950 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-50"
         >
           {isSubmitting ? 'Saving...' : 'Create my booking page →'}
         </button>

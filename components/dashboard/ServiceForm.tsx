@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useForm, Controller } from 'react-hook-form'
@@ -105,7 +104,7 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
 }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 p-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-5 p-6">
 
   {/* Name */}
   <div className="grid gap-2">
@@ -113,14 +112,16 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
       Service Name
     </label>
 
-    <Input 
+    <Input
       id="name"
       placeholder="e.g. Haircut"
+      className="h-10"
+      aria-invalid={Boolean(errors.name)}
       {...register('name')} 
     />
 
     {errors.name && (
-      <p className="text-sm text-red-500">
+      <p className="text-xs text-destructive">
         {errors.name.message}
       </p>
     )}
@@ -141,7 +142,7 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
           value={field.value?.toString()}
           onValueChange={(value) => field.onChange(Number(value))}
         >
-          <SelectTrigger className="w-full max-w-48">
+          <SelectTrigger className="h-10 w-full">
             <SelectValue placeholder="Select duration" />
           </SelectTrigger>
 
@@ -165,7 +166,7 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
     />
 
     {errors.duration_minutes && (
-      <p className="text-sm text-red-500">
+      <p className="text-xs text-destructive">
         {errors.duration_minutes.message}
       </p>
     )}
@@ -185,15 +186,19 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
 
       <Input
         id="price"
-        type="text"
+        type="number"
+        min="0"
+        step="0.01"
+        inputMode="decimal"
         placeholder="Optional"
-        className="pl-7"
+        className="h-10 pl-7"
+        aria-invalid={Boolean(errors.price)}
         {...register('price')}
       />
     </div>
 
     {errors.price && (
-      <p className="text-sm text-red-500">
+      <p className="text-xs text-destructive">
         {errors.price.message}
       </p>
     )}
@@ -209,19 +214,21 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
     <Textarea
       id="description"
       placeholder="Optional description"
+      className="min-h-24 resize-none"
+      aria-invalid={Boolean(errors.description)}
       {...register('description')}
     />
 
     {errors.description && (
-      <p className="text-sm text-red-500">
+      <p className="text-xs text-destructive">
         {errors.description.message}
       </p>
     )}
   </div>
 
 
-  <Button type="submit" disabled={isSubmitting}>
-    {isSubmitting ? 'Saving...' : 'Save'}
+  <Button type="submit" size="lg" className="mt-1 bg-stone-950 hover:bg-stone-800" disabled={isSubmitting}>
+    {isSubmitting ? 'Saving…' : service ? 'Save changes' : 'Create service'}
   </Button>
 
 </form>
