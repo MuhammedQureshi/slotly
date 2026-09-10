@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from '../ui/textarea'
 import { Button } from '../ui/button'
+import { useToast } from '../ui/toast'
 
 const DURATION_OPTIONS = [15, 30, 45, 60, 90, 120]
 
@@ -63,6 +64,7 @@ type Props = {
 }
 
 export default function ServiceForm({ bookingPageId, service, onSuccess }: Props) {
+  const { toast } = useToast()
   // TODO: useForm with zodResolver
   const {
   register,
@@ -94,12 +96,33 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
     formData.append('service_id', service.id)
   }
 
-  const result = service
-    ? await updateService(formData) 
-    : await createService(formData)
+  try {
+    const result = service
+      ? await updateService(formData)
+      : await createService(formData)
 
-  if (!result?.error) {
+    if (result?.error) {
+      toast({
+        title: service ? 'Could not save service' : 'Could not add service',
+        description: result.error,
+        variant: 'error',
+      })
+      return
+    }
+
+    toast({
+      title: service ? 'Service updated' : 'Service added',
+      description: service
+        ? `${data.name} has been updated.`
+        : `${data.name} is now available to book.`,
+    })
     onSuccess()
+  } catch {
+    toast({
+      title: service ? 'Could not save service' : 'Could not add service',
+      description: 'Something went wrong. Please try again.',
+      variant: 'error',
+    })
   }
 }
 

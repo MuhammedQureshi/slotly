@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from "../ui/button"
 import { saveAvailability } from "@/app/(dashboard)/my-page/actions"
+import { useToast } from "../ui/toast"
 
 type DayRule = {
   day_of_week: number  // 0 = Sun, 1 = Mon ... 6 = Sat
@@ -36,6 +37,8 @@ const initialDays: DayRule[] = [
 export default function AvailabilityEditor({ bookingPageId }: { bookingPageId: string }) {
   // TODO: useState with initialDays
   const [days, setDays] = useState<DayRule[]>(initialDays);
+  const [isSaving, setIsSaving] = useState(false)
+  const { toast } = useToast()
 
   const timeOptions = getTimeOptions()
 
@@ -61,16 +64,35 @@ export default function AvailabilityEditor({ bookingPageId }: { bookingPageId: s
   }
 
   const handleSave = async () => {
+    setIsSaving(true)
     const formData = new FormData()
     formData.append('booking_page_id', bookingPageId)
     formData.append('days', JSON.stringify(days))
 
-    const result = await saveAvailability(formData);
+    try {
+      const result = await saveAvailability(formData)
 
-    if (result?.error) {
-      console.error('Error saving availability:', result.error);
-    } else {
-      console.log('Availability saved successfully');
+      if (result?.error) {
+        toast({
+          title: 'Could not save availability',
+          description: result.error,
+          variant: 'error',
+        })
+        return
+      }
+
+      toast({
+        title: 'Availability saved',
+        description: 'Your booking hours are now up to date.',
+      })
+    } catch {
+      toast({
+        title: 'Could not save availability',
+        description: 'Something went wrong. Please try again.',
+        variant: 'error',
+      })
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -140,8 +162,8 @@ export default function AvailabilityEditor({ bookingPageId }: { bookingPageId: s
       </div>
 
       <div className="border-t border-stone-200 bg-stone-50/70 p-5">
-        <Button className="w-full bg-stone-950 hover:bg-stone-800" onClick={handleSave}>
-          Save availability
+        <Button className="w-full bg-stone-950 hover:bg-stone-800" disabled={isSaving} onClick={handleSave}>
+          {isSaving ? 'Saving…' : 'Save availability'}
         </Button>
       </div>
     </section>

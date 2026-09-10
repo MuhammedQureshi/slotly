@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useState } from 'react'
 import { saveBookingPage } from '@/app/(dashboard)/my-page/actions'
+import { useToast } from '@/components/ui/toast'
 
 // --- Zod schema ---
 // This is your single source of truth for validation rules.
@@ -36,6 +37,7 @@ const BUSINESS_TYPES = [
 
 export default function MyPageForm() {
   const [serverError, setServerError] = useState<string | null>(null)
+  const { toast } = useToast()
 
   // useForm wires up all the form state management for you.
   // zodResolver connects your Zod schema so validation runs automatically.
@@ -67,6 +69,11 @@ export default function MyPageForm() {
     // If the action returned an error (instead of redirecting), show it
     if (result?.error) {
       setServerError(result.error)
+      toast({
+        title: 'Could not create booking page',
+        description: result.error,
+        variant: 'error',
+      })
     }
   }
 

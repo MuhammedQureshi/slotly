@@ -21,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button'
 import ServiceForm from './ServiceForm'
 import { Clock, Pencil, Trash2 } from 'lucide-react'
+import { useToast } from '@/components/ui/toast'
 
 type Service = {
   id: string
@@ -38,15 +39,39 @@ export default function ServiceCard({
 }) {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { toast } = useToast()
 
   const handleDelete = async () => {
+    setIsDeleting(true)
     const formData = new FormData()
     formData.append('service_id', service.id)
 
-    const result = await deleteService(formData)
+    try {
+      const result = await deleteService(formData)
 
-    if (!result?.error) {
+      if (result?.error) {
+        toast({
+          title: 'Could not delete service',
+          description: result.error,
+          variant: 'error',
+        })
+        return
+      }
+
       setIsDeleteOpen(false)
+      toast({
+        title: 'Service deleted',
+        description: `${service.name} was removed from your booking page.`,
+      })
+    } catch {
+      toast({
+        title: 'Could not delete service',
+        description: 'Something went wrong. Please try again.',
+        variant: 'error',
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -164,8 +189,8 @@ export default function ServiceCard({
                   Cancel
                 </Button>
 
-                <Button variant="destructive" onClick={handleDelete}>
-                  Delete
+                <Button variant="destructive" disabled={isDeleting} onClick={handleDelete}>
+                  {isDeleting ? 'Deleting…' : 'Delete'}
                 </Button>
               </DialogFooter>
             </DialogContent>
