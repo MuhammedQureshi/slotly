@@ -6,10 +6,10 @@ import { ToastProvider } from '@/components/ui/toast'
     const user = await currentUser()
     return (
       <ToastProvider>
-        <div className="flex h-screen bg-stone-50 overflow-hidden">
+        <div className="flex h-dvh flex-col overflow-hidden bg-stone-50 md:flex-row">
           <Sidebar userName={user?.firstName} />
-          <main className="flex-1 overflow-y-auto p-8">
-            <div className="max-w-5xl mx-auto">{children}</div>
+          <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div className="mx-auto max-w-5xl">{children}</div>
           </main>
         </div>
       </ToastProvider>
