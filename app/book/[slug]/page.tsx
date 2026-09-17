@@ -58,8 +58,12 @@ export default async function BookingPage({ params }: { params: Promise<{ slug: 
           )}
         </header>
 
-        <section className="pt-8 sm:pt-10" aria-labelledby="services-heading">
-          <BookingPageFlow services={data.services} />
+        <section className="pt-8 sm:pt-10">
+          <BookingPageFlow
+            services={data.services}
+            pageId={data.id}
+            timezone={data.timezone ?? 'Europe/London'}
+          />
         </section>
       </div>
     </main>
