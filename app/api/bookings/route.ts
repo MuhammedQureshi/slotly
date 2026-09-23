@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { sendBookingConfirmation } from '@/lib/email'
+import { sendOwnerNotification } from '@/lib/email'
 import { supabaseAdmin } from '@/lib/supabase'
+
 
 const bookingSchema = z.object({
   booking_page_id: z.string(),
@@ -76,11 +78,18 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { data: bookingPage, error: bookingPageError } = await supabaseAdmin
+    const { data: bookingPage, error: bookingPageError } = await supabaseAdmin
     .from('booking_pages')
-    .select('business_name, timezone')
+    .select(`
+      business_name, 
+      timezone,
+      user:user_id (
+        email
+      )
+    `)
     .eq('id', data.booking_page_id)
     .maybeSingle()
+
 
   if (bookingPageError || !bookingPage) {
     console.error(
@@ -115,7 +124,8 @@ export async function POST(request: NextRequest) {
         ? bookingRecord.id
         : ''
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '')
-
+    const ownerEmail = (bookingPage.user as unknown as { email: string } | null)?.email
+    
     sendBookingConfirmation({
       to: data.customer_email,
       customerName: data.customer_name,
@@ -127,6 +137,22 @@ export async function POST(request: NextRequest) {
       price: formattedPrice,
       cancelUrl: bookingId ? `${appUrl}/cancel/${bookingId}` : appUrl,
     }).catch(console.error)
+
+    console.log('bookingPage.user:', bookingPage.user)
+
+    if (ownerEmail) {
+
+    sendOwnerNotification({
+      to: ownerEmail,
+      customerName: data.customer_name,
+      businessName: bookingPage.business_name,
+      serviceName: service.name,
+      date: formattedDate,
+      time: formattedTime,
+      duration: service.duration_minutes,
+      price: formattedPrice,
+    }).catch(console.error)
+  }
   }
 
   return NextResponse.json(
