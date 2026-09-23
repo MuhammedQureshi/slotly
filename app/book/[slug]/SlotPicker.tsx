@@ -119,7 +119,7 @@ export default function SlotPicker({
       </div>
 
       <div className="grid gap-6 md:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <DayPicker
             mode="single"
             selected={selectedDate}
@@ -137,12 +137,12 @@ export default function SlotPicker({
               button_previous: 'pointer-events-auto inline-flex size-11 shrink-0 touch-manipulation cursor-pointer items-center justify-center rounded-lg border border-transparent bg-white text-slate-500 transition hover:border-slate-200 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:pointer-events-none disabled:opacity-30',
               button_next: 'pointer-events-auto inline-flex size-11 shrink-0 touch-manipulation cursor-pointer items-center justify-center rounded-lg border border-transparent bg-white text-slate-500 transition hover:border-slate-200 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:pointer-events-none disabled:opacity-30',
               chevron: 'pointer-events-none size-4 fill-current',
-              month_grid: 'relative z-0 w-full border-collapse',
+              month_grid: 'relative z-0 w-full table-fixed border-collapse',
               weekdays: 'border-b border-slate-100',
-              weekday: 'pb-2 text-center text-xs font-medium text-slate-400',
+              weekday: 'w-1/7 pb-2 text-center text-xs font-medium text-slate-400',
               week: 'mt-1',
-              day: 'p-0.5 text-center text-sm text-slate-700',
-              day_button: 'mx-auto grid size-9 place-items-center rounded-lg transition hover:bg-amber-50 hover:text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-amber-500',
+              day: 'w-1/7 p-px text-center text-sm text-slate-700',
+              day_button: 'mx-auto grid aspect-square w-full max-w-9 place-items-center rounded-lg transition hover:bg-amber-50 hover:text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-amber-500',
               selected: '[&>button]:bg-amber-500 [&>button]:font-semibold [&>button]:text-stone-950 [&>button]:hover:bg-amber-500',
               today: '[&>button]:font-semibold [&>button]:ring-1 [&>button]:ring-inset [&>button]:ring-slate-300',
               outside: 'opacity-30',
