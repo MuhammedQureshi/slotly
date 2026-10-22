@@ -1,15 +1,9 @@
 import CreateServiceSheet from '@/components/dashboard/CreateService'
 import ServiceCard from '@/components/dashboard/ServiceCard'
+import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
-import { createClient } from '@supabase/supabase-js'
 import { Scissors } from 'lucide-react'
 
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
 
 export default async function Services() {
   const { userId: clerkUserId } = await auth()
@@ -18,7 +12,7 @@ if (!clerkUserId) {
   return <div>Please sign in.</div>
 }
 
-const supabase = getSupabase()
+const supabase = supabaseAdmin
 
 const { data: user } = await supabase
   .from('users')
