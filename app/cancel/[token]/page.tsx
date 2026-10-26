@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays, CheckCircle2 } from 'lucide-react'
 import { z } from 'zod'
 import { supabaseAdmin } from '@/lib/supabase'
 import CancelClient from './CancelClient'
@@ -21,9 +21,8 @@ export default async function CancelPage({
   const { data: booking, error } = validToken
     ? await supabaseAdmin
         .from('bookings')
-        .select('booking_page_id, service_id, starts_at, ends_at, price_pence')
+        .select('booking_page_id, service_id, starts_at, ends_at, price_pence, status')
         .eq('cancel_token', token)
-        .neq('status', 'cancelled')
         .maybeSingle()
     : { data: null, error: null }
 
@@ -35,7 +34,23 @@ export default async function CancelPage({
         <div className="w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm">
           <h1 className="text-2xl font-semibold text-stone-950">Booking not found</h1>
           <p className="mt-3 text-sm leading-6 text-stone-600">
-            This link is invalid or the booking has already been cancelled.
+            This link is invalid or the booking no longer exists.
+          </p>
+        </div>
+      </main>
+    )
+  }
+
+  if (booking.status === 'cancelled') {
+    return (
+      <main className="grid min-h-screen place-items-center bg-stone-50 px-4 py-12">
+        <div role="status" className="w-full max-w-lg rounded-2xl border border-emerald-200 bg-white p-8 text-center shadow-sm">
+          <span className="mx-auto grid size-12 place-items-center rounded-full bg-emerald-50 text-emerald-700">
+            <CheckCircle2 aria-hidden="true" className="size-6" />
+          </span>
+          <h1 className="mt-4 text-2xl font-semibold text-stone-950">Booking cancelled</h1>
+          <p className="mt-3 text-sm leading-6 text-stone-600">
+            Your appointment has been cancelled. No further action is needed.
           </p>
         </div>
       </main>
