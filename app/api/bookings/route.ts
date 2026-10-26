@@ -1,23 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import { sendBookingConfirmation } from '@/lib/email'
-import { sendOwnerNotification } from '@/lib/email'
+import { sendBookingNotifications } from '@/lib/booking-notifications'
 import { supabaseAdmin } from '@/lib/supabase'
 
 
 const bookingSchema = z.object({
-  booking_page_id: z.string(),
-  service_id: z.string(),
-  customer_name: z.string().min(1),
+  booking_page_id: z.string().uuid(),
+  service_id: z.string().uuid(),
+  customer_name: z.string().trim().min(1),
   customer_email: z.string().email(),
   customer_phone: z.string().optional(),
   customer_notes: z.string().optional(),
-  starts_at: z.string(),
+  starts_at: z.string().datetime({ offset: true }),
 })
 
 export async function POST(request: NextRequest) {
-  const body = await request.json()
+  const body = await request.json().catch(() => null)
   const result = bookingSchema.safeParse(body)
 
   if (!result.success) {
@@ -30,6 +29,7 @@ export async function POST(request: NextRequest) {
     .from('services')
     .select('name, duration_minutes, price_pence')
     .eq('id', data.service_id)
+    .eq('booking_page_id', data.booking_page_id)
     .maybeSingle()
 
   if (serviceError) {
@@ -78,83 +78,23 @@ export async function POST(request: NextRequest) {
     )
   }
 
-    const { data: bookingPage, error: bookingPageError } = await supabaseAdmin
-    .from('booking_pages')
-    .select(`
-      business_name, 
-      timezone,
-      user:user_id (
-        email
-      )
-    `)
-    .eq('id', data.booking_page_id)
-    .maybeSingle()
+  const bookingRecord = Array.isArray(booking) ? booking[0] : booking
+  const cancelToken = bookingRecord?.cancel_token
 
-
-  if (bookingPageError || !bookingPage) {
-    console.error(
-      'Booking created, but confirmation details could not be loaded:',
-      bookingPageError
-    )
+  if (typeof cancelToken === 'string' && cancelToken) {
+    after(() => sendBookingNotifications({
+      bookingPageId: data.booking_page_id,
+      cancelToken,
+      customerName: data.customer_name,
+      customerEmail: data.customer_email,
+      serviceName: service.name,
+      startsAt: startsAt.toISOString(),
+      duration: service.duration_minutes,
+      pricePence: service.price_pence,
+    }).catch(console.error))
   } else {
-    const timezone = bookingPage.timezone ?? 'Europe/London'
-    const formattedDate = new Intl.DateTimeFormat('en-GB', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      timeZone: timezone,
-    }).format(startsAt)
-    const formattedTime = new Intl.DateTimeFormat('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-      timeZone: timezone,
-    }).format(startsAt)
-    const formattedPrice =
-      service.price_pence === null || service.price_pence === 0
-        ? 'Free'
-        : `£${(service.price_pence / 100).toFixed(2)}`
-    const bookingRecord = Array.isArray(booking) ? booking[0] : booking
-    const bookingId =
-      bookingRecord &&
-      typeof bookingRecord === 'object' &&
-      'id' in bookingRecord &&
-      typeof bookingRecord.id === 'string'
-        ? bookingRecord.id
-        : ''
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '')
-    const ownerEmail = (bookingPage.user as unknown as { email: string } | null)?.email
-    
-    sendBookingConfirmation({
-      to: data.customer_email,
-      customerName: data.customer_name,
-      businessName: bookingPage.business_name,
-      serviceName: service.name,
-      date: formattedDate,
-      time: formattedTime,
-      duration: service.duration_minutes,
-      price: formattedPrice,
-      cancelUrl: bookingId ? `${appUrl}/cancel/${bookingId}` : appUrl,
-    }).catch(console.error)
-
-    console.log('bookingPage.user:', bookingPage.user)
-
-    if (ownerEmail) {
-
-    sendOwnerNotification({
-      to: ownerEmail,
-      customerName: data.customer_name,
-      businessName: bookingPage.business_name,
-      serviceName: service.name,
-      date: formattedDate,
-      time: formattedTime,
-      duration: service.duration_minutes,
-      price: formattedPrice,
-    }).catch(console.error)
+    console.error('Booking saved, but create_booking did not return cancel_token')
   }
-  }
-
   return NextResponse.json(
     { message: 'Booking created successfully.', booking },
     { status: 201 }

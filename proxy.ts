@@ -9,6 +9,7 @@ const isPublicRoute = createRouteMatcher([
     '/cancel(.*)',
     '/api/webhooks(.*)',
     '/api/slots(.*)',
+    '/api/bookings',
   ])
 
 
