@@ -17,6 +17,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { supabaseAdmin } from '@/lib/supabase'
+import { activateProFromCheckout } from '@/lib/billing'
+import { getStripe } from '@/lib/stripe'
 
 import { BillingActionForm } from './BillingActionForm'
 
@@ -36,10 +38,10 @@ const proFeatures = [
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string }>
+  searchParams: Promise<{ success?: string; session_id?: string }>
 }) {
   const { userId: clerkUserId } = await auth()
-  const { success } = await searchParams
+  const { success, session_id: sessionId } = await searchParams
 
   if (!clerkUserId) {
     return <p className="text-sm text-stone-600">Please sign in to view billing.</p>
@@ -47,7 +49,7 @@ export default async function BillingPage({
 
   const { data: user, error } = await supabaseAdmin
     .from('users')
-    .select('plan, stripe_customer_id, stripe_subscription_id')
+    .select('id, plan, stripe_customer_id, stripe_subscription_id')
     .eq('clerk_user_id', clerkUserId)
     .single()
 
@@ -59,7 +61,18 @@ export default async function BillingPage({
     )
   }
 
-  const isPro = user.plan === 'pro'
+  let isPro = user.plan === 'pro'
+  let checkoutVerified = false
+
+  if (success === 'true' && sessionId) {
+    try {
+      const session = await getStripe().checkout.sessions.retrieve(sessionId)
+      checkoutVerified = await activateProFromCheckout(session, user.id)
+      isPro = isPro || checkoutVerified
+    } catch (checkoutError) {
+      console.error('Unable to reconcile successful Checkout:', checkoutError)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -80,7 +93,7 @@ export default async function BillingPage({
         </p>
       </header>
 
-      {success === 'true' && (
+      {success === 'true' && checkoutVerified && (
         <div
           role="status"
           className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900"
@@ -144,7 +157,7 @@ export default async function BillingPage({
               </Badge>
             </div>
             <CardTitle className="mt-3 text-xl">Slotly Pro</CardTitle>
-            <CardDescription>The complete toolkit for running your booking business.</CardDescription>
+            <CardDescription>The complete toolkit for running your barbershop.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <p>

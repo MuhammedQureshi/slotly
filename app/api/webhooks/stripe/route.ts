@@ -1,5 +1,6 @@
 import type Stripe from 'stripe'
 
+import { activateProFromCheckout } from '@/lib/billing'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getStripe } from '@/lib/stripe'
 
@@ -7,36 +8,6 @@ export const runtime = 'nodejs'
 
 function objectId(value: string | { id: string } | null) {
   return typeof value === 'string' ? value : value?.id ?? null
-}
-
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  if (session.mode !== 'subscription' || session.payment_status !== 'paid') {
-    return
-  }
-
-  const customerId = objectId(session.customer)
-  const subscriptionId = objectId(session.subscription)
-  const userId = session.client_reference_id || session.metadata?.user_id
-
-  if (!customerId || !subscriptionId) {
-    throw new Error(`Checkout Session ${session.id} is missing billing identifiers`)
-  }
-
-  let query = supabaseAdmin
-    .from('users')
-    .update({
-      plan: 'pro',
-      stripe_customer_id: customerId,
-      stripe_subscription_id: subscriptionId,
-    })
-
-  query = userId ? query.eq('id', userId) : query.eq('stripe_customer_id', customerId)
-
-  const { error } = await query
-
-  if (error) {
-    throw new Error(`Unable to upgrade user: ${error.message}`)
-  }
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -96,7 +67,7 @@ export async function POST(request: Request) {
   try {
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object)
+        await activateProFromCheckout(event.data.object)
         break
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object)

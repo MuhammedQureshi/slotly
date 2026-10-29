@@ -84,7 +84,7 @@ export default async function DashboardPage() {
           Good to see you, {firstName}
         </h1>
         <p className="mt-2 text-sm leading-6 text-stone-600">
-          Here&apos;s how your booking business is doing.
+          Here&apos;s how your barbershop is doing.
         </p>
       </header>
 
