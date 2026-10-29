@@ -4,6 +4,7 @@ export type DashboardMetrics = {
   bookingsThisMonth: number
   upcomingToday: number
   totalCustomers: number
+  revenueThisMonth: number | null
 }
 
 export type RecentBooking = {
@@ -48,7 +49,8 @@ async function getBookingPageIds(userId: string) {
 }
 
 export async function getDashboardMetrics(
-  userId: string
+  userId: string,
+  options: { includeRevenue?: boolean } = {}
 ): Promise<DashboardMetrics> {
   const bookingPageIds = await getBookingPageIds(userId)
 
@@ -57,6 +59,7 @@ export async function getDashboardMetrics(
       bookingsThisMonth: 0,
       upcomingToday: 0,
       totalCustomers: 0,
+      revenueThisMonth: options.includeRevenue ? 0 : null,
     }
   }
 
@@ -67,11 +70,12 @@ export async function getDashboardMetrics(
     startOfNextMonth,
   } = getPeriodBoundaries()
 
-  const [monthResult, todayResult, customersResult] = await Promise.all([
+  const [monthResult, todayResult, customersResult, revenueResult] = await Promise.all([
     supabaseAdmin
       .from('bookings')
       .select('*', { count: 'exact', head: true })
       .in('booking_page_id', bookingPageIds)
+      .neq('status', 'cancelled')
       .gte('starts_at', startOfMonth)
       .lt('starts_at', startOfNextMonth),
     supabaseAdmin
@@ -85,6 +89,15 @@ export async function getDashboardMetrics(
       .from('bookings')
       .select('customer_email')
       .in('booking_page_id', bookingPageIds),
+    options.includeRevenue
+      ? supabaseAdmin
+          .from('bookings')
+          .select('price_pence')
+          .in('booking_page_id', bookingPageIds)
+          .neq('status', 'cancelled')
+          .gte('starts_at', startOfMonth)
+          .lt('starts_at', startOfNextMonth)
+      : Promise.resolve({ data: null, error: null }),
   ])
 
   if (monthResult.error) {
@@ -101,6 +114,10 @@ export async function getDashboardMetrics(
     throw new Error('Could not load customers: ' + customersResult.error.message)
   }
 
+  if (revenueResult.error) {
+    throw new Error('Could not calculate revenue: ' + revenueResult.error.message)
+  }
+
   const customerEmails = new Set(
     (customersResult.data ?? [])
       .map((booking) => booking.customer_email.trim().toLowerCase())
@@ -111,6 +128,12 @@ export async function getDashboardMetrics(
     bookingsThisMonth: monthResult.count ?? 0,
     upcomingToday: todayResult.count ?? 0,
     totalCustomers: customerEmails.size,
+    revenueThisMonth: options.includeRevenue
+      ? (revenueResult.data ?? []).reduce(
+          (total, booking) => total + (booking.price_pence ?? 0),
+          0
+        )
+      : null,
   }
 }
 

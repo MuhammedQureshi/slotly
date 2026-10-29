@@ -2,6 +2,11 @@ import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { sendBookingNotifications } from '@/lib/booking-notifications'
+import {
+  FREE_MONTHLY_BOOKING_LIMIT,
+  getBookingMonthBoundaries,
+  isProPlan,
+} from '@/lib/plans'
 import { supabaseAdmin } from '@/lib/supabase'
 
 
@@ -46,6 +51,60 @@ export async function POST(request: NextRequest) {
 
   const startsAt = new Date(data.starts_at)
   const endsAt = new Date(startsAt.getTime() + service.duration_minutes * 60000)
+
+  const { data: bookingPage, error: pageError } = await supabaseAdmin
+    .from('booking_pages')
+    .select('user_id, timezone')
+    .eq('id', data.booking_page_id)
+    .maybeSingle()
+
+  if (pageError || !bookingPage) {
+    return NextResponse.json({ error: 'Booking page not found.' }, { status: 404 })
+  }
+
+  const { data: owner, error: ownerError } = await supabaseAdmin
+    .from('users')
+    .select('plan')
+    .eq('id', bookingPage.user_id)
+    .maybeSingle()
+
+  if (ownerError || !owner) {
+    return NextResponse.json(
+      { error: 'Unable to verify booking availability.' },
+      { status: 500 }
+    )
+  }
+
+  if (!isProPlan(owner.plan)) {
+    const timeZone = bookingPage.timezone || 'Europe/London'
+    const month = getBookingMonthBoundaries(startsAt, timeZone)
+
+    const { count, error: countError } = await supabaseAdmin
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('booking_page_id', data.booking_page_id)
+      .neq('status', 'cancelled')
+      .gte('starts_at', month.start.toISOString())
+      .lt('starts_at', month.end.toISOString())
+
+    if (countError) {
+      return NextResponse.json(
+        { error: 'Unable to verify booking availability.' },
+        { status: 500 }
+      )
+    }
+
+    if ((count ?? 0) >= FREE_MONTHLY_BOOKING_LIMIT) {
+      return NextResponse.json(
+        {
+          error:
+            'Online bookings are full for this month. Please contact the business directly.',
+          code: 'monthly_booking_limit_reached',
+        },
+        { status: 409 }
+      )
+    }
+  }
 
   const { data: booking, error: insertError } = await supabaseAdmin.rpc(
     'create_booking',

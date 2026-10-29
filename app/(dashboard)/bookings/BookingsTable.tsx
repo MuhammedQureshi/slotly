@@ -73,7 +73,11 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-export default function BookingsTable({ bookings }: { bookings: Booking[] }) {
+export default function BookingsTable({
+  bookings,
+}: {
+  bookings: Booking[]
+}) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
 
   return (

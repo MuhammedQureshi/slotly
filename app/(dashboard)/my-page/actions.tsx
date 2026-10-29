@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { generateSlug } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
+import { FREE_BOOKING_PAGE_LIMIT, isProPlan } from '@/lib/plans'
 
 function getSupabase() {
   return createClient(
@@ -27,12 +28,29 @@ export async function saveBookingPage(formData: FormData) {
   //    booking_pages.user_id is a UUID foreign key to users.id.
   const { data: user, error: userError } = await supabase
     .from('users')
-    .select('id')
+    .select('id, plan')
     .eq('clerk_user_id', clerkUserId)
     .single()
 
   if (userError || !user) {
     return { error: 'User account not found. Make sure your Clerk webhook has synced.' }
+  }
+
+  if (!isProPlan(user.plan)) {
+    const { count, error: countError } = await supabase
+      .from('booking_pages')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
+    if (countError) {
+      return { error: 'Unable to check your booking page limit. Please try again.' }
+    }
+
+    if ((count ?? 0) >= FREE_BOOKING_PAGE_LIMIT) {
+      return {
+        error: 'Free plans include one booking page. Upgrade to Pro to create another page.',
+      }
+    }
   }
 
   const businessName = formData.get('business_name') as string

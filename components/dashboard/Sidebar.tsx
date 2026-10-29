@@ -23,6 +23,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { useUserPlan } from '@/lib/useUserPlan'
 
 const NAV = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
@@ -35,10 +36,11 @@ const NAV = [
 
 type NavLinksProps = {
   pathname: string
+  showUpgrade: boolean
   onNavigate?: () => void
 }
 
-function NavLinks({ pathname, onNavigate }: NavLinksProps) {
+function NavLinks({ pathname, showUpgrade, onNavigate }: NavLinksProps) {
   return (
     <nav className="flex-1 space-y-1 p-3" aria-label="Dashboard navigation">
       {NAV.map(({ label, href, icon: Icon }) => {
@@ -59,6 +61,11 @@ function NavLinks({ pathname, onNavigate }: NavLinksProps) {
           >
             <Icon aria-hidden="true" className="size-4" />
             {label}
+            {href === '/billing' && showUpgrade && (
+              <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-800 uppercase">
+                Upgrade
+              </span>
+            )}
           </Link>
         )
       })}
@@ -88,6 +95,8 @@ function Account({ userName }: { userName?: string | null }) {
 export function Sidebar({ userName }: { userName?: string | null }) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const { isPro, loading } = useUserPlan()
+  const showUpgrade = !loading && !isPro
 
   return (
     <>
@@ -110,7 +119,11 @@ export function Sidebar({ userName }: { userName?: string | null }) {
                 <span className="sr-only"> navigation</span>
               </SheetTitle>
             </SheetHeader>
-            <NavLinks pathname={pathname} onNavigate={() => setIsOpen(false)} />
+            <NavLinks
+              pathname={pathname}
+              showUpgrade={showUpgrade}
+              onNavigate={() => setIsOpen(false)}
+            />
             <Account userName={userName} />
           </SheetContent>
         </Sheet>
@@ -120,7 +133,7 @@ export function Sidebar({ userName }: { userName?: string | null }) {
         <div className="border-b border-stone-200 p-5">
           <Brand />
         </div>
-        <NavLinks pathname={pathname} />
+        <NavLinks pathname={pathname} showUpgrade={showUpgrade} />
         <Account userName={userName} />
       </aside>
     </>

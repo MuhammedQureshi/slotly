@@ -4,17 +4,18 @@ import {
   CalendarCheck2,
   CalendarDays,
   Clock3,
-  PoundSterling,
   UsersRound,
 } from 'lucide-react'
 import Link from 'next/link'
 
 import MetricCard from '@/components/dashboard/MetricCard'
+import RevenueMetricCard from '@/components/dashboard/RevenueMetricCard'
 import {
   getDashboardMetrics,
   getRecentBookings,
 } from '@/lib/dashboard'
 import { supabaseAdmin } from '@/lib/supabase'
+import { isProPlan } from '@/lib/plans'
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
   weekday: 'short',
@@ -53,7 +54,7 @@ export default async function DashboardPage() {
 
   const { data: appUser, error: appUserError } = await supabaseAdmin
     .from('users')
-    .select('id')
+    .select('id, plan')
     .eq('clerk_user_id', clerkUserId)
     .maybeSingle()
 
@@ -65,8 +66,9 @@ export default async function DashboardPage() {
     )
   }
 
+  const isPro = isProPlan(appUser.plan)
   const [metrics, recentBookings] = await Promise.all([
-    getDashboardMetrics(appUser.id),
+    getDashboardMetrics(appUser.id, { includeRevenue: isPro }),
     getRecentBookings(appUser.id),
   ])
 
@@ -105,10 +107,15 @@ export default async function DashboardPage() {
           description="Unique customer email addresses"
           icon={UsersRound}
         />
-        <MetricCard
-          label="Revenue this month"
-          icon={PoundSterling}
-          locked
+        <RevenueMetricCard
+          value={
+            isPro
+              ? new Intl.NumberFormat('en-GB', {
+                  style: 'currency',
+                  currency: 'GBP',
+                }).format((metrics.revenueThisMonth ?? 0) / 100)
+              : undefined
+          }
         />
       </section>
 

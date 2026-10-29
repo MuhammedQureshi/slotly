@@ -1,4 +1,9 @@
 import { getAvailableSlots } from '@/lib/slots'
+import {
+  FREE_MONTHLY_BOOKING_LIMIT,
+  getBookingMonthBoundaries,
+  isProPlan,
+} from '@/lib/plans'
 import { supabaseAdmin } from '@/lib/supabase'
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
@@ -34,7 +39,7 @@ export async function GET(request: Request) {
 
   const { data: bookingPage, error: pageError } = await supabaseAdmin
     .from('booking_pages')
-    .select('id, timezone, buffer_minutes, min_notice_hours')
+    .select('id, user_id, timezone, buffer_minutes, min_notice_hours')
     .eq('id', pageId)
     .eq('is_published', true)
     .eq('is_active', true)
@@ -47,6 +52,42 @@ export async function GET(request: Request) {
 
   if (!bookingPage) {
     return Response.json({ error: 'Booking page not found.' }, { status: 404 })
+  }
+
+  const { data: owner, error: ownerError } = await supabaseAdmin
+    .from('users')
+    .select('plan')
+    .eq('id', bookingPage.user_id)
+    .maybeSingle()
+
+  if (ownerError || !owner) {
+    return Response.json({ error: 'Unable to load available slots.' }, { status: 500 })
+  }
+
+  if (!isProPlan(owner.plan)) {
+    const timeZone = bookingPage.timezone ?? 'Europe/London'
+    const month = getBookingMonthBoundaries(date, timeZone)
+    const { count, error: countError } = await supabaseAdmin
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('booking_page_id', pageId)
+      .neq('status', 'cancelled')
+      .gte('starts_at', month.start.toISOString())
+      .lt('starts_at', month.end.toISOString())
+
+    if (countError) {
+      return Response.json({ error: 'Unable to load available slots.' }, { status: 500 })
+    }
+
+    if ((count ?? 0) >= FREE_MONTHLY_BOOKING_LIMIT) {
+      return Response.json(
+        {
+          error:
+            'Online bookings are full for this month. Please contact the business directly.',
+        },
+        { status: 409 }
+      )
+    }
   }
 
   // Only allow durations that belong to an active service on this page.
