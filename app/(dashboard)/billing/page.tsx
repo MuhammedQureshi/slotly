@@ -24,15 +24,13 @@ import { BillingActionForm } from './BillingActionForm'
 
 const proFeatures = [
   ['Unlimited bookings', 'No monthly appointment limit'],
-  ['Personal booking page', 'Your logo, services, prices and contact details'],
+  ['Revenue dashboard', 'Track monthly booking revenue at a glance'],
   ['Service management', 'Different appointment lengths and prices'],
-  ['Availability controls', 'Working hours, breaks, days off and holidays'],
+  ['Weekly availability', 'Set working hours and days off'],
   ['Booking confirmations', 'Automatic confirmation emails'],
-  ['Email reminders', 'Remind customers before their appointment'],
-  ['Cancel and reschedule', 'Customers manage their booking through a link'],
-  ['Client history', 'Customer details and previous appointments'],
-  ['Manual appointments', 'Add bookings received by phone or in person'],
-  ['Booking link and QR code', 'Share on Instagram or display in the shop'],
+  ['Customer cancellations', 'Customers can cancel through a secure link'],
+  ['Booking history', 'Customer details and previous appointments'],
+  ['Shareable booking link', 'Share your booking page with customers'],
 ]
 
 export default async function BillingPage({
