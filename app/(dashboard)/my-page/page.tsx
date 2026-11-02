@@ -1,4 +1,4 @@
-import AvailabilityEditor from '@/components/dashboard/AvailabilityEditor'
+import AvailabilityEditor, { type DayRule } from '@/components/dashboard/AvailabilityEditor'
 import MyPageForm from '@/components/dashboard/MyPageForm'
 import PagePreview from '@/components/dashboard/PagePreview'
 import { auth } from '@clerk/nextjs/server'
@@ -36,7 +36,8 @@ export default async function Mypage() {
     .from('booking_pages')
     .select('*')
     .eq('user_id', user.id)
-    .single()
+    .limit(1)
+    .maybeSingle()
 
   if (!bookingPage) {
     return (
@@ -51,11 +52,18 @@ export default async function Mypage() {
     )
   }
 
-  const { data: services } = await supabase
-    .from('services')
-    .select('*')
-    .eq('booking_page_id', bookingPage.id)
-    .order('sort_order')  
+  const [{ data: services }, { data: availabilityRules }] = await Promise.all([
+    supabase
+      .from('services')
+      .select('*')
+      .eq('booking_page_id', bookingPage.id)
+      .order('sort_order'),
+    supabase
+      .from('availability_rules')
+      .select('day_of_week, is_active, start_time, end_time')
+      .eq('booking_page_id', bookingPage.id)
+      .order('day_of_week'),
+  ])
 
 
   return (
@@ -98,7 +106,10 @@ export default async function Mypage() {
           services={services ?? []}
           />
         </div>
-        <AvailabilityEditor bookingPageId={bookingPage.id} />
+        <AvailabilityEditor
+          bookingPageId={bookingPage.id}
+          initialRules={(availabilityRules ?? []) as DayRule[]}
+        />
       </div>
     </div>
   )

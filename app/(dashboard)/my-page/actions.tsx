@@ -6,6 +6,26 @@ import { redirect } from 'next/navigation'
 import { generateSlug } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
 import { FREE_BOOKING_PAGE_LIMIT, isProPlan } from '@/lib/plans'
+import { z } from 'zod'
+
+const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/
+const availabilitySchema = z
+  .array(
+    z
+      .object({
+        day_of_week: z.number().int().min(0).max(6),
+        is_active: z.boolean(),
+        start_time: z.string().regex(timePattern),
+        end_time: z.string().regex(timePattern),
+      })
+      .refine((day) => !day.is_active || day.start_time < day.end_time, {
+        message: 'Closing time must be after opening time.',
+      })
+  )
+  .length(7)
+  .refine((days) => new Set(days.map((day) => day.day_of_week)).size === 7, {
+    message: 'Availability must include each day exactly once.',
+  })
 
 function getSupabase() {
   return createClient(
@@ -91,6 +111,8 @@ export async function saveBookingPage(formData: FormData) {
       phone:         phone || null,
       description:   description || null,
       timezone:      timezone || 'Europe/London',
+      is_active:     true,
+      is_published:  true,
     })
     .select('id')
     .single()
@@ -132,9 +154,27 @@ export async function saveAvailability(formData: FormData) {
     return { error: 'User account not found.' }
   }
 
-  const days = JSON.parse(formData.get('days') as string);
-  
-  const bookingPageId = formData.get('booking_page_id') as string;
+  const rawDays = formData.get('days')
+  const bookingPageId = formData.get('booking_page_id')
+
+  if (typeof rawDays !== 'string' || typeof bookingPageId !== 'string') {
+    return { error: 'Invalid availability details.' }
+  }
+
+  let parsedDays: unknown
+  try {
+    parsedDays = JSON.parse(rawDays)
+  } catch {
+    return { error: 'Invalid availability details.' }
+  }
+
+  const result = availabilitySchema.safeParse(parsedDays)
+  if (!result.success) {
+    return { error: result.error.issues[0]?.message ?? 'Invalid availability details.' }
+  }
+
+  const days = result.data
+
   const { data: bookingPage, error: bookingPageError } = await supabase
     .from('booking_pages')
     .select('id')
@@ -146,26 +186,21 @@ export async function saveAvailability(formData: FormData) {
     return { error: 'Booking page not found or you do not have permission to edit it.' }
   }
 
-  const { error: deleteError } = await supabase
+  const { error: saveError } = await supabase
     .from('availability_rules')
-    .delete()
-    .eq('booking_page_id', bookingPageId)
+    .upsert(
+      days.map((day) => ({
+        booking_page_id: bookingPageId,
+        day_of_week: day.day_of_week,
+        is_active: day.is_active,
+        start_time: day.start_time,
+        end_time: day.end_time,
+      })),
+      { onConflict: 'booking_page_id,day_of_week' }
+    )
 
-  if (deleteError) {
-    return { error: 'Error deleting existing availability. Please try again.' }
-  }
-
-  const { error: insertError } = await supabase
-    .from('availability_rules')
-    .insert(days.map((day: { day_of_week: number; is_active: boolean; start_time: string; end_time: string }) => ({
-      booking_page_id: bookingPageId,
-      day_of_week: day.day_of_week,
-      is_active: day.is_active,
-      start_time: day.start_time,
-      end_time: day.end_time,
-    })))
-
-  if (insertError) {
+  if (saveError) {
+    console.error('Availability save error:', saveError)
     return { error: 'Error saving availability. Please try again.' }
   }
 

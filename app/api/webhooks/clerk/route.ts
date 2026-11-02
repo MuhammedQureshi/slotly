@@ -32,17 +32,29 @@ export async function POST(req: Request) {
 
   console.log('Event type:', event.type)
 
-  if (event.type === 'user.created') {
+  if (event.type === 'user.created' || event.type === 'user.updated') {
     const { id, email_addresses, first_name, last_name } = event.data
+    const email = email_addresses[0]?.email_address
 
-    const { error } = await supabaseAdmin.from('users').insert({
-      clerk_user_id: id,
-      email: email_addresses[0].email_address,
-      full_name: [first_name, last_name].filter(Boolean).join(' '),
-    })
+    if (!email) {
+      console.error(`Clerk ${event.type} event ${id} is missing an email address`)
+      return new Response('User email is required', { status: 400 })
+    }
+
+    const { error } = await supabaseAdmin
+      .from('users')
+      .upsert(
+        {
+          clerk_user_id: id,
+          email,
+          full_name: [first_name, last_name].filter(Boolean).join(' '),
+        },
+        { onConflict: 'clerk_user_id' }
+      )
 
     if (error) {
       console.error('Supabase error:', error)
+      return new Response('Unable to sync user', { status: 500 })
     }
   }
 

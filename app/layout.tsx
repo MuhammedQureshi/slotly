@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
+import { ClerkProvider } from '@clerk/nextjs'
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Slotly",
-  description: "A simple scheduling app built with Next.js, Supabase, and Clerk.",
+  description: "Online booking software built for barbers.",
 };
 
 export default function RootLayout({

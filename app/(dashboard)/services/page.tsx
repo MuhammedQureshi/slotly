@@ -28,7 +28,8 @@ const { data: bookingPage } = await supabase
   .from('booking_pages')
   .select('id')
   .eq('user_id', user.id)
-  .single()
+  .limit(1)
+  .maybeSingle()
 
 if (!bookingPage) {
   return <div>No booking page found.</div>

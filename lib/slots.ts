@@ -1,6 +1,6 @@
 import { fromZonedTime, toZonedTime } from 'date-fns-tz'
 
-import { supabase } from './supabase'
+import { supabaseAdmin } from './supabase'
 
 type ExistingBooking = {
   starts_at: string
@@ -81,7 +81,7 @@ export async function getAvailableSlots(
   const targetInstant = fromZonedTime(`${date}T12:00:00`, timezone)
   const dayOfWeek = toZonedTime(targetInstant, timezone).getDay()
 
-  const { data: rule, error: ruleError } = await supabase
+  const { data: rule, error: ruleError } = await supabaseAdmin
     .from('availability_rules')
     .select('is_active, start_time, end_time')
     .eq('booking_page_id', bookingPageId)
@@ -94,7 +94,7 @@ export async function getAvailableSlots(
 
   if (!rule || !rule.is_active) return []
 
-  const { data: blocked, error: blockedError } = await supabase
+  const { data: blocked, error: blockedError } = await supabaseAdmin
     .from('blocked_dates')
     .select('id')
     .eq('booking_page_id', bookingPageId)
@@ -124,7 +124,7 @@ export async function getAvailableSlots(
   const dayEnd = fromZonedTime(`${nextCalendarDate(date)}T00:00:00`, timezone)
 
   // Include bookings that cross midnight into the target date.
-  const { data: existingBookings, error: bookingsError } = await supabase
+  const { data: existingBookings, error: bookingsError } = await supabaseAdmin
     .from('bookings')
     .select('starts_at, ends_at')
     .eq('booking_page_id', bookingPageId)

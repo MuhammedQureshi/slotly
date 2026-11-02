@@ -15,7 +15,7 @@ import { Button } from "../ui/button"
 import { saveAvailability } from "@/app/(dashboard)/my-page/actions"
 import { useToast } from "../ui/toast"
 
-type DayRule = {
+export type DayRule = {
   day_of_week: number  // 0 = Sun, 1 = Mon ... 6 = Sat
   is_active: boolean
   start_time: string   // '09:00'
@@ -34,9 +34,28 @@ const initialDays: DayRule[] = [
   { day_of_week: 6, is_active: false, start_time: '09:00', end_time: '17:00' }, // Sat
 ]
 
-export default function AvailabilityEditor({ bookingPageId }: { bookingPageId: string }) {
-  // TODO: useState with initialDays
-  const [days, setDays] = useState<DayRule[]>(initialDays);
+function mergeAvailability(rules: DayRule[]) {
+  const byDay = new Map(
+    rules.map((rule) => [
+      rule.day_of_week,
+      {
+        ...rule,
+        start_time: rule.start_time.slice(0, 5),
+        end_time: rule.end_time.slice(0, 5),
+      },
+    ])
+  )
+  return initialDays.map((fallback) => byDay.get(fallback.day_of_week) ?? fallback)
+}
+
+export default function AvailabilityEditor({
+  bookingPageId,
+  initialRules,
+}: {
+  bookingPageId: string
+  initialRules: DayRule[]
+}) {
+  const [days, setDays] = useState<DayRule[]>(() => mergeAvailability(initialRules))
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
 

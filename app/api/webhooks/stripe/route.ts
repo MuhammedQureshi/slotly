@@ -17,11 +17,22 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     throw new Error(`Subscription ${subscription.id} is missing its customer`)
   }
 
+  const subscriptions = await getStripe().subscriptions.list({
+    customer: customerId,
+    status: 'all',
+    limit: 100,
+  })
+  const replacement = subscriptions.data.find(
+    (candidate) =>
+      candidate.id !== subscription.id &&
+      ['active', 'trialing', 'past_due', 'unpaid'].includes(candidate.status)
+  )
+
   const { error } = await supabaseAdmin
     .from('users')
     .update({
-      plan: 'free',
-      stripe_subscription_id: null,
+      plan: replacement ? 'pro' : 'free',
+      stripe_subscription_id: replacement?.id ?? null,
     })
     .eq('stripe_customer_id', customerId)
     .eq('stripe_subscription_id', subscription.id)

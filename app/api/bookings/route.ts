@@ -1,4 +1,5 @@
 import { after, NextRequest, NextResponse } from 'next/server'
+import { formatInTimeZone } from 'date-fns-tz'
 import { z } from 'zod'
 
 import { sendBookingNotifications } from '@/lib/booking-notifications'
@@ -8,6 +9,7 @@ import {
   isProPlan,
 } from '@/lib/plans'
 import { supabaseAdmin } from '@/lib/supabase'
+import { getAvailableSlots } from '@/lib/slots'
 
 
 const bookingSchema = z.object({
@@ -54,8 +56,10 @@ export async function POST(request: NextRequest) {
 
   const { data: bookingPage, error: pageError } = await supabaseAdmin
     .from('booking_pages')
-    .select('user_id, timezone')
+    .select('user_id, timezone, buffer_minutes, min_notice_hours')
     .eq('id', data.booking_page_id)
+    .eq('is_published', true)
+    .eq('is_active', true)
     .maybeSingle()
 
   if (pageError || !bookingPage) {
@@ -104,6 +108,34 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       )
     }
+  }
+
+  const timeZone = bookingPage.timezone || 'Europe/London'
+  const bookingDate = formatInTimeZone(startsAt, timeZone, 'yyyy-MM-dd')
+
+  let availableSlots: string[]
+  try {
+    availableSlots = await getAvailableSlots(
+      data.booking_page_id,
+      bookingDate,
+      service.duration_minutes,
+      timeZone,
+      bookingPage.buffer_minutes ?? 0,
+      bookingPage.min_notice_hours ?? 0
+    )
+  } catch (error) {
+    console.error('Unable to validate requested booking slot:', error)
+    return NextResponse.json(
+      { error: 'Unable to verify this appointment time.' },
+      { status: 500 }
+    )
+  }
+
+  if (!availableSlots.includes(startsAt.toISOString())) {
+    return NextResponse.json(
+      { error: 'This appointment time is no longer available.' },
+      { status: 409 }
+    )
   }
 
   const { data: booking, error: insertError } = await supabaseAdmin.rpc(
