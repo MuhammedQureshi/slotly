@@ -45,7 +45,7 @@ export async function saveBranding(formData: FormData) {
   if (!owner || !getEntitlements(owner.plan).customBranding) {
     return { error: 'Custom branding is available on Pro.' }
   }
-  const { data: page } = await supabase.from('booking_pages').select('id')
+  const { data: page } = await supabase.from('booking_pages').select('id, logo_path')
     .eq('user_id', owner.id).limit(1).maybeSingle()
   if (!page) return { error: 'Create your booking page first.' }
   const color = String(formData.get('accent_color') ?? '')
@@ -54,8 +54,9 @@ export async function saveBranding(formData: FormData) {
     return { error: 'Choose a darker colour so white text remains readable.' }
   }
   const file = formData.get('logo')
+  const removeLogo = formData.get('remove_logo') === 'true'
   let logoPath: string | undefined
-  if (file instanceof File && file.size > 0) {
+  if (!removeLogo && file instanceof File && file.size > 0) {
     if (file.size > 2_097_152 || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
       return { error: 'Use a PNG, JPEG or WebP logo under 2 MB.' }
     }
@@ -73,9 +74,16 @@ export async function saveBranding(formData: FormData) {
   }
   const { error } = await supabase.from('booking_pages').update({
     accent_color: color,
-    ...(logoPath ? { logo_path: logoPath } : {}),
+    ...(removeLogo ? { logo_path: null, logo_url: null } : {}),
+    ...(logoPath ? { logo_path: logoPath, logo_url: null } : {}),
   }).eq('id', page.id).eq('user_id', owner.id)
-  if (error) return { error: 'Could not save branding.' }
+  if (error) {
+    if (logoPath) await supabase.storage.from('booking-logos').remove([logoPath])
+    return { error: 'Could not save branding.' }
+  }
+  if ((removeLogo || logoPath) && page.logo_path?.startsWith(`${owner.id}/`)) {
+    await supabase.storage.from('booking-logos').remove([page.logo_path])
+  }
   revalidatePath('/my-page')
   return { success: true }
 }
