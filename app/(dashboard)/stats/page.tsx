@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getEntitlements } from '@/lib/plans'
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { DatePicker } from '@/components/ui/date-picker'
 
 function validDate(value: string | undefined): value is string {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
@@ -18,11 +21,11 @@ export default async function StatsPage({ searchParams }: {
   const { data: user } = await supabaseAdmin.from('users').select('id, plan')
     .eq('clerk_user_id', userId).maybeSingle()
   if (!user) return <p>Account not found.</p>
-  if (!getEntitlements(user.plan).statistics) return <div className="rounded-xl border bg-white p-6">
-    <h1 className="text-2xl font-semibold">Booking statistics</h1>
-    <p className="mt-2 text-sm text-stone-600">Upgrade to Pro to view appointment trends and estimated service value.</p>
-    <Link href="/billing" className="mt-3 inline-block text-amber-800 underline">View Pro</Link>
-  </div>
+  if (!getEntitlements(user.plan).statistics) return <Card>
+    <CardHeader><CardTitle>Booking statistics</CardTitle>
+      <CardDescription>Upgrade to Pro to view appointment trends and estimated service value.</CardDescription></CardHeader>
+    <CardContent><Link href="/billing" className={buttonVariants({ variant: 'outline' })}>View Pro</Link></CardContent>
+  </Card>
   const { data: pages } = await supabaseAdmin.from('booking_pages').select('id, timezone').eq('user_id', user.id)
   const ids = (pages ?? []).map((page) => page.id)
   const timezone = pages?.[0]?.timezone || 'Europe/London'
@@ -49,20 +52,23 @@ export default async function StatsPage({ searchParams }: {
   const estimate = bookings.filter((booking) => ['confirmed', 'completed', 'no_show'].includes(booking.status))
     .reduce((total, booking) => total + (booking.price_pence ?? 0), 0)
   return <div className="space-y-6">
-    <h1 className="text-3xl font-semibold">Booking statistics</h1>
-    <form className="flex flex-wrap items-end gap-3 text-sm">
-      <label>From <input name="from" type="date" defaultValue={from} className="ml-2 rounded border p-2" /></label>
-      <label>To <input name="to" type="date" defaultValue={to} className="ml-2 rounded border p-2" /></label>
-      <button className="rounded bg-stone-900 px-4 py-2 text-white">Apply</button>
-    </form>
+    <header><h1 className="text-3xl font-semibold tracking-tight">Booking statistics</h1>
+      <p className="mt-2 text-sm text-muted-foreground">A closer look at appointments and estimated service value.</p></header>
+    <Card><CardContent>
+      <form className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
+        <DatePicker label="From" name="from" defaultValue={from} timezone={timezone} />
+        <DatePicker label="To" name="to" defaultValue={to} timezone={timezone} />
+        <Button type="submit">Apply dates</Button>
+      </form>
+    </CardContent></Card>
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {[
+      {([
         ['Appointments', bookings.length], ['Completed', count('completed')],
         ['Cancellations', count('cancelled')], ['No-shows', count('no_show')],
         ['Estimated service value', new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(estimate / 100)],
-      ].map(([label, value]) => <div key={label} className="rounded-xl border bg-white p-5">
-        <p className="text-sm text-stone-600">{label}</p><p className="mt-2 text-2xl font-semibold">{value}</p>
-      </div>)}
+      ] as [string, string | number][]).map(([label, value]) => <Card key={label}>
+        <CardHeader><CardDescription>{label}</CardDescription><CardTitle className="text-2xl font-semibold tabular-nums">{value}</CardTitle></CardHeader>
+      </Card>)}
     </div>
     <p className="text-xs text-stone-500">Service value is an estimate based on appointment prices. Slotly does not collect customer payments.</p>
   </div>

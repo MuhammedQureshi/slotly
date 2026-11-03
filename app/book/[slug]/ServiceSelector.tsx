@@ -1,4 +1,5 @@
 import { ChevronRight, Clock } from "lucide-react"
+import { Button } from '@/components/ui/button'
 
 type Service = {
   id: string
@@ -20,11 +21,12 @@ export default function ServiceSelector({ services, onSelect }: { services: Serv
 
       <div className="space-y-3">
         {services.map((service) => (
-          <button
+          <Button
             key={service.id}
             type="button"
+            variant="outline"
             onClick={() => onSelect(service)}
-            className="group flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:translate-y-0 sm:p-6"
+            className="group h-auto w-full items-center gap-4 whitespace-normal p-5 text-left sm:p-6"
           >
             <span className="min-w-0 flex-1">
               <span className="block text-base font-semibold text-slate-950 sm:text-lg">
@@ -46,7 +48,7 @@ export default function ServiceSelector({ services, onSelect }: { services: Serv
                 <ChevronRight aria-hidden="true" className="size-4" />
               </span>
             </span>
-          </button>
+          </Button>
         ))}
       </div>
     </div>

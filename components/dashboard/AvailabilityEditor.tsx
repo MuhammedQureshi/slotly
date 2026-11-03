@@ -12,6 +12,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Button } from "../ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { TimePicker } from '@/components/ui/time-picker'
 import { saveAvailability } from "@/app/(dashboard)/my-page/actions"
 import { useToast } from "../ui/toast"
 
@@ -65,8 +68,6 @@ export default function AvailabilityEditor({
 
   const timeOptions = getTimeOptions()
 
-  // TODO: write a toggleDay function that flips is_active for a given day_of_week
-  // use the setDays + map pattern we just discussed
   function toggleDay(day_of_week: number) {
     setDays(currentDays => currentDays.map(day =>
         day.day_of_week === day_of_week ?
@@ -76,8 +77,6 @@ export default function AvailabilityEditor({
   }
 
 
-  // TODO: write an updateTime function that updates start_time or end_time
-  // it needs to know: which day, which field ('start_time' or 'end_time'), and the new value
   function updateTime(day_of_week: number, field: 'start_time' | 'end_time' | 'break_start' | 'break_end', value: string) {
     setDays(currentDays => currentDays.map(day =>
         day.day_of_week === day_of_week ?
@@ -120,30 +119,22 @@ export default function AvailabilityEditor({
   }
 
   return (
-    <section className="rounded-2xl border border-stone-200 bg-white shadow-sm">
-      <div className="flex items-start gap-3 border-b border-stone-200 p-5">
-        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-700">
-          <CalendarClock aria-hidden="true" className="size-4" />
-        </span>
-        <div>
-          <h2 className="text-base font-semibold text-stone-950">Weekly availability</h2>
-          <p className="mt-1 text-sm leading-5 text-stone-600">Set the hours customers can choose from.</p>
-        </div>
-      </div>
+    <Card>
+      <CardHeader className="border-b">
+        <CardTitle className="flex items-center gap-2"><CalendarClock aria-hidden="true" className="size-4" /> Weekly availability</CardTitle>
+        <CardDescription>Set the hours customers can choose from.</CardDescription>
+      </CardHeader>
 
-      <div className="divide-y divide-stone-100 px-5">
+      <CardContent className="divide-y">
         {days.map(day => (
         <div key={day.day_of_week} className="py-4">
           <div className="flex items-center justify-between gap-3">
-            <label htmlFor={`day-${day.day_of_week}`} className="text-sm font-medium text-stone-800">
+            <Label htmlFor={`day-${day.day_of_week}`}>
               {DAY_NAMES[day.day_of_week]}
-            </label>
+            </Label>
             <Switch id={`day-${day.day_of_week}`} checked={day.is_active} onCheckedChange={() => toggleDay(day.day_of_week)} />
           </div>
           {day.is_active ? (
-          // TODO: two selects for start_time and end_time
-          // each one maps over timeOptions
-          // onChange calls updateTime with the right field
             <>
             <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
               <Select
@@ -178,13 +169,11 @@ export default function AvailabilityEditor({
                 </SelectContent>
               </Select>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-stone-600">
-              <span>Break</span>
-              <input aria-label={`${DAY_NAMES[day.day_of_week]} break start`} type="time" value={day.break_start ?? ''}
-                onChange={(event) => updateTime(day.day_of_week, 'break_start', event.target.value)} className="min-w-0 rounded border p-1" />
-              <span>to</span>
-              <input aria-label={`${DAY_NAMES[day.day_of_week]} break end`} type="time" value={day.break_end ?? ''}
-                onChange={(event) => updateTime(day.day_of_week, 'break_end', event.target.value)} className="min-w-0 rounded border p-1" />
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <TimePicker label={`${DAY_NAMES[day.day_of_week]} break starts`} value={day.break_start ?? ''}
+                onValueChange={(value) => updateTime(day.day_of_week, 'break_start', value)} optional />
+              <TimePicker label={`${DAY_NAMES[day.day_of_week]} break ends`} value={day.break_end ?? ''}
+                onValueChange={(value) => updateTime(day.day_of_week, 'break_end', value)} optional />
             </div>
             </>
           ) : (
@@ -192,13 +181,13 @@ export default function AvailabilityEditor({
           )}
         </div>
         ))}
-      </div>
+      </CardContent>
 
-      <div className="border-t border-stone-200 bg-stone-50/70 p-5">
-        <Button className="w-full bg-stone-950 hover:bg-stone-800" disabled={isSaving} onClick={handleSave}>
+      <CardFooter>
+        <Button className="w-full" disabled={isSaving} onClick={handleSave}>
           {isSaving ? 'Saving…' : 'Save availability'}
         </Button>
-      </div>
-    </section>
+      </CardFooter>
+    </Card>
   )
 }

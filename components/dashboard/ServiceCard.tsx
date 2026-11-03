@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/dialog'
 
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import ServiceForm from './ServiceForm'
 import { Clock, Pencil, Trash2 } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
@@ -81,22 +83,22 @@ export default function ServiceCard({
       : `£${(service.price_pence / 100).toFixed(2)}`
 
   return (
-    <article className="group flex h-full flex-col rounded-2xl border border-stone-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
-      <div className="flex flex-1 items-start justify-between gap-4">
+    <Card className="h-full">
+      <CardContent className="flex flex-1 items-start justify-between gap-4">
         <div className="min-w-0">
           <h2 className="truncate text-lg font-semibold tracking-tight text-stone-950">
             {service.name}
           </h2>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-600">
+            <Badge variant="secondary" className="gap-1.5">
               <Clock aria-hidden="true" className="size-3.5" />
               {service.duration_minutes} min
-            </span>
+            </Badge>
 
-            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+            <Badge variant="outline" className="font-semibold">
               {formattedPrice}
-            </span>
+            </Badge>
           </div>
 
           {service.description && (
@@ -105,9 +107,9 @@ export default function ServiceCard({
             </p>
           )}
         </div>
-      </div>
+      </CardContent>
 
-      <div className="mt-6 flex items-center gap-2 border-t border-stone-100 pt-4">
+      <CardFooter className="mt-auto gap-2">
         <Button
           variant="outline"
           className="flex-1 border-stone-200"
@@ -195,7 +197,7 @@ export default function ServiceCard({
               </DialogFooter>
             </DialogContent>
           </Dialog>
-      </div>
-    </article>
+      </CardFooter>
+    </Card>
   )
 }

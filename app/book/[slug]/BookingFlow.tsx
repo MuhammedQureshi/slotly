@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { CalendarCheck2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 
 import BookingForm from './BookingForm'
 import ServiceSelector from './ServiceSelector'
@@ -83,7 +85,7 @@ export default function BookingFlow({ services, pageId, timezone }: Props) {
     }).format(new Date(selectedSlot))
 
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-white px-6 py-10 text-center shadow-sm sm:px-10">
+      <Card className="border border-emerald-200 text-center"><CardContent className="py-6 sm:px-10">
         <span className="mx-auto grid size-14 place-items-center rounded-full bg-emerald-100 text-emerald-700">
           <CalendarCheck2 aria-hidden="true" className="size-7" />
         </span>
@@ -94,18 +96,19 @@ export default function BookingFlow({ services, pageId, timezone }: Props) {
           Your {service.name} appointment is booked for {appointment}. Your
           booking has been saved successfully.
         </p>
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={() => {
             setSelectedSlot(undefined)
             setService(hasSingleService ? services[0] : null)
             setStep(hasSingleService ? 'slot' : 'service')
           }}
-          className="mt-6 h-11 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+          className="mt-6"
         >
           Book another appointment
-        </button>
-      </div>
+        </Button>
+      </CardContent></Card>
     )
   }
 

@@ -18,6 +18,9 @@ import {
 import { supabaseAdmin } from '@/lib/supabase'
 import { isProPlan } from '@/lib/plans'
 import { FREE_MONTHLY_BOOKING_LIMIT } from '@/lib/plans'
+import { Badge } from '@/components/ui/badge'
+import { buttonVariants } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
   weekday: 'short',
@@ -104,14 +107,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </header>
 
       {!isPro && (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-stone-900" aria-label="Monthly booking allowance">
-          <p className="font-semibold">{metrics.bookingsThisMonth} of {FREE_MONTHLY_BOOKING_LIMIT} bookings used for {monthLabel}</p>
-          <div className="mt-2 flex gap-4 text-sm text-amber-800">
-            {month > currentMonth && <Link href={`/dashboard?month=${previousMonth.toISOString().slice(0, 7)}`}>Previous month</Link>}
-            <Link href={`/dashboard?month=${nextMonth.toISOString().slice(0, 7)}`}>Next month</Link>
-          </div>
-          {metrics.bookingsThisMonth >= FREE_MONTHLY_BOOKING_LIMIT && <Link href="/billing" className="mt-3 inline-block text-sm font-semibold underline">Upgrade for unlimited bookings</Link>}
-        </section>
+        <Card className="bg-amber-50/60" aria-label="Monthly booking allowance">
+          <CardHeader><CardTitle>{metrics.bookingsThisMonth} of {FREE_MONTHLY_BOOKING_LIMIT} bookings used</CardTitle>
+            <CardDescription>Free allowance for {monthLabel}</CardDescription></CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-2">
+            {month > currentMonth && <Link href={`/dashboard?month=${previousMonth.toISOString().slice(0, 7)}`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>Previous month</Link>}
+            <Link href={`/dashboard?month=${nextMonth.toISOString().slice(0, 7)}`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>Next month</Link>
+            {metrics.bookingsThisMonth >= FREE_MONTHLY_BOOKING_LIMIT && <Link href="/billing" className={buttonVariants({ size: 'sm' })}>Upgrade for unlimited bookings</Link>}
+          </CardContent>
+        </Card>
       )}
 
       <section aria-label="Booking metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -147,33 +151,25 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         />
       </section>
 
-      <section
+      <Card
         aria-labelledby="recent-bookings-heading"
-        className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm"
       >
-        <div className="flex items-center justify-between gap-4 border-b border-stone-200 px-5 py-4 sm:px-6">
+        <CardHeader className="flex flex-row items-center justify-between gap-4 border-b">
           <div>
-            <h2
-              id="recent-bookings-heading"
-              className="font-semibold text-stone-950"
-            >
-              Recent bookings
-            </h2>
-            <p className="mt-1 text-sm text-stone-600">
-              Your five latest appointments.
-            </p>
+            <CardTitle id="recent-bookings-heading">Recent bookings</CardTitle>
+            <CardDescription>Your five latest appointments.</CardDescription>
           </div>
           <Link
             href="/bookings"
-            className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-amber-800 transition hover:text-amber-950 focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
           >
             View all
             <ArrowRight aria-hidden="true" className="size-4" />
           </Link>
-        </div>
+        </CardHeader>
 
         {recentBookings.length > 0 ? (
-          <ul className="divide-y divide-stone-100">
+          <ul className="divide-y">
             {recentBookings.map((booking) => (
               <li
                 key={booking.id}
@@ -198,19 +194,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     {timeFormatter.format(new Date(booking.starts_at))}
                   </p>
                 </div>
-                <span
-                  className={
-                    'rounded-full px-2.5 py-1 text-xs font-medium capitalize ' +
-                    getStatusClassName(booking.status)
-                  }
-                >
+                <Badge variant="outline" className={'capitalize ' + getStatusClassName(booking.status)}>
                   {booking.status}
-                </span>
+                </Badge>
               </li>
             ))}
           </ul>
         ) : (
-          <div className="flex min-h-48 flex-col items-center justify-center px-6 text-center">
+          <CardContent className="flex min-h-48 flex-col items-center justify-center text-center">
             <span className="grid size-11 place-items-center rounded-full bg-stone-100 text-stone-500">
               <Clock3 aria-hidden="true" className="size-5" />
             </span>
@@ -218,9 +209,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <p className="mt-1 max-w-sm text-sm leading-6 text-stone-600">
               Bookings from your public page will appear here.
             </p>
-          </div>
+          </CardContent>
         )}
-      </section>
+      </Card>
     </div>
   )
 }

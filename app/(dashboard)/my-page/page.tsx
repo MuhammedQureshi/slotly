@@ -19,7 +19,7 @@ function getSupabase() {
 }
 
 
-export default async function Mypage() {
+export default async function Mypage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { userId: clerkUserId } = await auth()
 
   if (!clerkUserId) {
@@ -109,7 +109,7 @@ export default async function Mypage() {
         </div>
       </div>
 
-      <Tabs defaultValue="appearance" className="gap-6">
+      <Tabs defaultValue={(await searchParams).tab === 'availability' ? 'availability' : 'appearance'} className="gap-6">
         <TabsList aria-label="Booking page settings" className="h-10">
           <TabsTrigger value="appearance" className="px-4">Appearance</TabsTrigger>
           <TabsTrigger value="availability" className="px-4">Availability</TabsTrigger>

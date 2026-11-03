@@ -125,13 +125,13 @@ export default function BrandingForm({ initialColor, initialLogoUrl, preview }: 
               <p className="mt-1 text-xs text-muted-foreground">Used for your shop name and booking buttons. Choose a dark colour for readability.</p>
               <div className="mt-3 flex flex-wrap gap-2" aria-label="Suggested brand colours">
                 {colors.map((choice) => (
-                  <button key={choice.value} type="button" title={choice.name} aria-label={choice.name}
+                  <Button key={choice.value} type="button" variant="ghost" size="icon" title={choice.name} aria-label={choice.name}
                     aria-pressed={color.toLowerCase() === choice.value}
                     onClick={() => setColor(choice.value)}
-                    className="grid size-9 place-items-center rounded-full border-2 border-white text-white shadow-sm ring-offset-2 transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:ring-2 aria-pressed:ring-foreground"
+                    className="size-9 rounded-full border-2 border-white p-0 text-white shadow-sm ring-offset-2 transition hover:scale-105 aria-pressed:ring-2 aria-pressed:ring-foreground"
                     style={{ backgroundColor: choice.value }}>
                     {color.toLowerCase() === choice.value && <Check aria-hidden="true" className="size-4" />}
-                  </button>
+                  </Button>
                 ))}
               </div>
               <div className="mt-4 flex items-center gap-2">

@@ -10,6 +10,11 @@ import {
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 const bookingSchema = z.object({
   customer_name: z
@@ -51,9 +56,6 @@ type Props = {
 type BookingResponse = {
   error?: unknown
 }
-
-const inputClassName =
-  'mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-4 focus:ring-amber-100 disabled:cursor-not-allowed disabled:bg-slate-50'
 
 export default function BookingForm({
   bookingPageId,
@@ -136,15 +138,17 @@ export default function BookingForm({
   return (
     <div>
       <div className="mb-6 flex items-start gap-3">
-        <button
+        <Button
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+          variant="outline"
+          size="icon"
+          className="mt-0.5"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
           <span className="sr-only">Back to date and time</span>
-        </button>
+        </Button>
         <div>
           <h2 className="text-xl font-semibold tracking-tight text-slate-950">
             Your details
@@ -156,7 +160,7 @@ export default function BookingForm({
       </div>
 
       <div className="grid gap-6 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-        <aside className="h-fit rounded-2xl border border-amber-200 bg-amber-50/70 p-5">
+        <Card className="h-fit bg-amber-50/70"><CardContent>
           <p className="text-xs font-semibold tracking-[0.14em] text-amber-800 uppercase">
             Booking summary
           </p>
@@ -191,22 +195,22 @@ export default function BookingForm({
               {price}
             </span>
           </div>
-        </aside>
+        </CardContent></Card>
 
+        <Card><CardContent>
         <form
           noValidate
           onSubmit={handleSubmit(onSubmit)}
-          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+          className="space-y-5"
         >
           <div className="space-y-5">
             <div>
-              <label
+              <Label
                 htmlFor="customer_name"
-                className="text-sm font-medium text-slate-800"
               >
                 Name <span className="text-red-600">*</span>
-              </label>
-              <input
+              </Label>
+              <Input
                 id="customer_name"
                 type="text"
                 autoComplete="name"
@@ -216,7 +220,7 @@ export default function BookingForm({
                 aria-describedby={
                   errors.customer_name ? 'customer_name-error' : undefined
                 }
-                className={inputClassName}
+                className="mt-2 h-10"
                 {...register('customer_name')}
               />
               {errors.customer_name ? (
@@ -230,13 +234,12 @@ export default function BookingForm({
             </div>
 
             <div>
-              <label
+              <Label
                 htmlFor="customer_email"
-                className="text-sm font-medium text-slate-800"
               >
                 Email <span className="text-red-600">*</span>
-              </label>
-              <input
+              </Label>
+              <Input
                 id="customer_email"
                 type="email"
                 inputMode="email"
@@ -247,7 +250,7 @@ export default function BookingForm({
                 aria-describedby={
                   errors.customer_email ? 'customer_email-error' : undefined
                 }
-                className={inputClassName}
+                className="mt-2 h-10"
                 {...register('customer_email')}
               />
               {errors.customer_email ? (
@@ -261,14 +264,13 @@ export default function BookingForm({
             </div>
 
             <div>
-              <label
+              <Label
                 htmlFor="customer_phone"
-                className="text-sm font-medium text-slate-800"
               >
                 Phone{' '}
                 <span className="font-normal text-slate-400">(optional)</span>
-              </label>
-              <input
+              </Label>
+              <Input
                 id="customer_phone"
                 type="tel"
                 inputMode="tel"
@@ -279,7 +281,7 @@ export default function BookingForm({
                 aria-describedby={
                   errors.customer_phone ? 'customer_phone-error' : undefined
                 }
-                className={inputClassName}
+                className="mt-2 h-10"
                 {...register('customer_phone')}
               />
               {errors.customer_phone ? (
@@ -293,14 +295,13 @@ export default function BookingForm({
             </div>
 
             <div>
-              <label
+              <Label
                 htmlFor="customer_notes"
-                className="text-sm font-medium text-slate-800"
               >
                 Notes{' '}
                 <span className="font-normal text-slate-400">(optional)</span>
-              </label>
-              <textarea
+              </Label>
+              <Textarea
                 id="customer_notes"
                 rows={4}
                 placeholder="Anything we should know before your appointment?"
@@ -309,7 +310,7 @@ export default function BookingForm({
                 aria-describedby={
                   errors.customer_notes ? 'customer_notes-error' : undefined
                 }
-                className="mt-2 w-full resize-y rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-4 focus:ring-amber-100 disabled:cursor-not-allowed disabled:bg-slate-50"
+                className="mt-2 min-h-28 resize-y"
                 {...register('customer_notes')}
               />
               {errors.customer_notes ? (
@@ -329,20 +330,22 @@ export default function BookingForm({
               className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm leading-6 text-red-700"
             >
               {serverError}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={onBack}
-                className="ml-1 font-semibold underline underline-offset-2 hover:text-red-900"
+                className="ml-1 px-1 text-red-700"
               >
                 Choose another time
-              </button>
+              </Button>
             </div>
           ) : null}
 
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+            size="lg"
+            className="mt-6 w-full"
           >
             {isSubmitting ? (
               <>
@@ -352,8 +355,9 @@ export default function BookingForm({
             ) : (
               'Confirm booking'
             )}
-          </button>
+          </Button>
         </form>
+        </CardContent></Card>
       </div>
     </div>
   )

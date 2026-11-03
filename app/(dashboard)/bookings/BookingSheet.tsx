@@ -14,6 +14,8 @@ import {
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DateTimeField } from '@/components/ui/date-picker'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
@@ -38,6 +40,7 @@ type Props = {
   booking: Booking | null
   onClose: () => void
   canWriteNotes: boolean
+  timezone: string
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
@@ -90,12 +93,13 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-export default function BookingSheet({ booking, onClose, canWriteNotes }: Props) {
+export default function BookingSheet({ booking, onClose, canWriteNotes, timezone }: Props) {
   const router = useRouter()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
   const [error, setError] = useState<string>()
   const [noteMessage, setNoteMessage] = useState('')
+  const [rescheduleMessage, setRescheduleMessage] = useState('')
 
   const closeSheet = () => {
     setConfirmOpen(false)
@@ -262,9 +266,9 @@ export default function BookingSheet({ booking, onClose, canWriteNotes }: Props)
                   const result = await savePrivateNotes(booking.id, notes)
                   setNoteMessage(result.error ?? 'Notes saved.')
                 }}>
-                  <textarea name="private_notes" defaultValue={booking.private_notes ?? ''} maxLength={2000}
-                    className="mt-2 min-h-24 w-full rounded-lg border border-stone-300 p-2 text-sm" />
-                  <button className="rounded-lg bg-stone-900 px-3 py-2 text-sm text-white">Save notes</button>
+                  <Textarea name="private_notes" defaultValue={booking.private_notes ?? ''} maxLength={2000}
+                    className="mt-2 min-h-24" />
+                  <Button type="submit" className="mt-2">Save notes</Button>
                   {noteMessage && <p role="status" className="mt-2 text-xs">{noteMessage}</p>}
                 </form> : <p className="mt-2 whitespace-pre-wrap text-sm text-stone-600">
                   {booking.private_notes || 'Upgrade to Pro to add private notes.'}
@@ -276,13 +280,15 @@ export default function BookingSheet({ booking, onClose, canWriteNotes }: Props)
                   <form onSubmit={async (event) => {
                     event.preventDefault()
                     const value = String(new FormData(event.currentTarget).get('starts_at') ?? '')
+                    if (!value) { setRescheduleMessage('Choose a date and time.'); return }
                     const result = await rescheduleBookingByToken(booking.cancel_token, value)
-                    setNoteMessage(result.error ?? 'Appointment moved.')
+                    setRescheduleMessage(result.error ?? 'Appointment moved.')
                     if (result.success) router.refresh()
                   }} className="mb-5">
-                    <label className="block text-sm font-medium">Move appointment</label>
-                    <input type="datetime-local" name="starts_at" required className="mt-2 w-full rounded-lg border border-stone-300 p-2" />
-                    <button className="mt-2 rounded-lg bg-stone-900 px-3 py-2 text-sm text-white">Save new time</button>
+                    <p className="mb-3 text-sm font-medium">Move appointment</p>
+                    <DateTimeField name="starts_at" timezone={timezone} />
+                    <Button type="submit" className="mt-3">Save new time</Button>
+                    {rescheduleMessage && <p role="status" className="mt-2 text-sm text-muted-foreground">{rescheduleMessage}</p>}
                   </form>
                   <Button
                     variant="destructive"

@@ -28,7 +28,7 @@ export default function CreateServiceSheet({
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
         render={
-          <Button size="lg" className="w-fit justify-center bg-stone-950 px-4 hover:bg-stone-800">
+          <Button size="lg" className="w-fit justify-center px-4">
             <CirclePlus aria-hidden="true" className="size-4" />
             Add service
           </Button>

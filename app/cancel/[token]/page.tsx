@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { supabaseAdmin } from '@/lib/supabase'
 import CancelClient from './CancelClient'
 import RescheduleClient from './RescheduleClient'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
@@ -32,12 +33,10 @@ export default async function CancelPage({
   if (!booking) {
     return (
       <main className="grid min-h-screen place-items-center bg-stone-50 px-4 py-12">
-        <div className="w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-semibold text-stone-950">Booking not found</h1>
-          <p className="mt-3 text-sm leading-6 text-stone-600">
-            This link is invalid or the booking no longer exists.
-          </p>
-        </div>
+        <Card className="w-full max-w-lg text-center"><CardHeader>
+          <CardTitle className="text-2xl">Booking not found</CardTitle>
+          <CardDescription>This link is invalid or the booking no longer exists.</CardDescription>
+        </CardHeader></Card>
       </main>
     )
   }
@@ -45,7 +44,7 @@ export default async function CancelPage({
   if (booking.status === 'cancelled') {
     return (
       <main className="grid min-h-screen place-items-center bg-stone-50 px-4 py-12">
-        <div role="status" className="w-full max-w-lg rounded-2xl border border-emerald-200 bg-white p-8 text-center shadow-sm">
+        <Card role="status" className="w-full max-w-lg border border-emerald-200 text-center"><CardContent className="py-6">
           <span className="mx-auto grid size-12 place-items-center rounded-full bg-emerald-50 text-emerald-700">
             <CheckCircle2 aria-hidden="true" className="size-6" />
           </span>
@@ -53,7 +52,7 @@ export default async function CancelPage({
           <p className="mt-3 text-sm leading-6 text-stone-600">
             Your appointment has been cancelled. No further action is needed.
           </p>
-        </div>
+        </CardContent></Card>
       </main>
     )
   }
@@ -74,7 +73,7 @@ export default async function CancelPage({
 
   return (
     <main className="grid min-h-screen place-items-center bg-stone-50 px-4 py-12 sm:px-6">
-      <div className="w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
+      <Card className="w-full max-w-lg"><CardContent className="py-2 sm:px-8">
         <span className="grid size-11 place-items-center rounded-xl bg-amber-50 text-amber-700"><CalendarDays aria-hidden="true" className="size-5" /></span>
         <p className="mt-5 text-xs font-semibold tracking-widest text-amber-700 uppercase">{pageResult.data.business_name}</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-stone-950">Manage your booking</h1>
@@ -85,9 +84,9 @@ export default async function CancelPage({
           <div><dt className="text-stone-500">Price</dt><dd className="mt-1 font-medium text-stone-950">{price}</dd></div>
         </dl>
         {booking.status === 'confirmed' && new Date(booking.starts_at) > new Date()
-          ? <><CancelClient token={token} /><RescheduleClient token={token} /></>
+          ? <><CancelClient token={token} /><RescheduleClient token={token} timezone={timezone} /></>
           : <p className="mt-6 text-sm text-stone-600">This appointment can no longer be changed online.</p>}
-      </div>
+      </CardContent></Card>
     </main>
   )
 }

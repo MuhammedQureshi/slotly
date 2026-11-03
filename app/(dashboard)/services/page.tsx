@@ -3,6 +3,7 @@ import ServiceCard from '@/components/dashboard/ServiceCard'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { Scissors } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 
 
 export default async function Services() {
@@ -66,7 +67,7 @@ const { data: services } = await supabase
           ))}
         </div>
       ) : (
-        <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-white/60 px-6 text-center">
+        <Card className="border border-dashed"><CardContent className="flex min-h-64 flex-col items-center justify-center text-center">
           <span className="grid size-12 place-items-center rounded-full bg-amber-50 text-amber-700">
             <Scissors aria-hidden="true" className="size-5" />
           </span>
@@ -77,7 +78,7 @@ const { data: services } = await supabase
           <div className="mt-5">
             <CreateServiceSheet bookingPageId={bookingPage.id} />
           </div>
-        </div>
+        </CardContent></Card>
       )}
     </div>
   )

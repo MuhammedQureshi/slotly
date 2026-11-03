@@ -3,13 +3,16 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { rescheduleBookingByToken } from './actions'
+import { Button } from '@/components/ui/button'
+import { DateTimeField } from '@/components/ui/date-picker'
 
-export default function RescheduleClient({ token }: { token: string }) {
+export default function RescheduleClient({ token, timezone }: { token: string; timezone: string }) {
   const [message, setMessage] = useState('')
   const router = useRouter()
   return <form onSubmit={async (event) => {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
+    if (!form.get('starts_at')) { setMessage('Choose a date and time.'); return }
     setMessage('Checking availability…')
     try {
       const result = await rescheduleBookingByToken(token, String(form.get('starts_at') ?? ''))
@@ -19,9 +22,9 @@ export default function RescheduleClient({ token }: { token: string }) {
       setMessage('Unable to reschedule. Please try again.')
     }
   }} className="mt-6 border-t border-stone-200 pt-6">
-    <label htmlFor="new-time" className="block text-sm font-medium text-stone-900">Choose a new time</label>
-    <input id="new-time" name="starts_at" type="datetime-local" required className="mt-2 block w-full rounded-lg border border-stone-300 p-2" />
-    <button className="mt-3 rounded-lg bg-stone-900 px-4 py-2 text-sm text-white">Request reschedule</button>
+    <h2 className="mb-3 text-sm font-semibold">Choose a new time</h2>
+    <DateTimeField name="starts_at" timezone={timezone} />
+    <Button type="submit" className="mt-4 w-full">Request reschedule</Button>
     {message && <p role="status" className="mt-3 text-sm text-stone-700">{message}</p>}
   </form>
 }

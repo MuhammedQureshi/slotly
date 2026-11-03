@@ -1,6 +1,10 @@
 import { auth } from '@clerk/nextjs/server'
 import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase'
+import { ArrowLeft, CalendarDays } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { buttonVariants } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default async function CustomerHistory({ params }: { params: Promise<{ email: string }> }) {
   const { userId } = await auth()
@@ -18,16 +22,22 @@ export default async function CustomerHistory({ params }: { params: Promise<{ em
     .order('starts_at', { ascending: false }).limit(500)
   if (error || !data?.length) return <p>Customer not found.</p>
   return <div className="space-y-6">
-    <Link href="/customers" className="text-sm text-amber-800 underline">Back to customers</Link>
-    <header><h1 className="text-3xl font-semibold">{data[0].customer_name}</h1>
-      <p className="text-sm text-stone-600">{data[0].customer_email}</p></header>
+    <Link href="/customers" className={buttonVariants({ variant: 'outline', size: 'sm' })}><ArrowLeft aria-hidden="true" /> Customers</Link>
+    <header><h1 className="text-3xl font-semibold tracking-tight">{data[0].customer_name}</h1>
+      <p className="mt-1 text-sm text-muted-foreground">{data[0].customer_email}</p></header>
     <ul className="space-y-3">{data.map((booking) => {
       const service = Array.isArray(booking.service) ? booking.service[0] : booking.service
-      return <li key={booking.id} className="rounded-xl border bg-white p-4">
-        <p className="font-medium">{service?.name || 'Appointment'} · {booking.status}</p>
-        <p className="text-sm text-stone-600">{new Date(booking.starts_at).toLocaleString('en-GB')}</p>
-        {booking.private_notes && <p className="mt-2 whitespace-pre-wrap text-sm">Private notes: {booking.private_notes}</p>}
-      </li>
+      return <li key={booking.id}><Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-3">
+            <div><CardTitle className="flex items-center gap-2"><CalendarDays aria-hidden="true" className="size-4" /> {service?.name || 'Appointment'}</CardTitle>
+              <CardDescription>{new Date(booking.starts_at).toLocaleString('en-GB')}</CardDescription></div>
+            <Badge variant="outline" className="capitalize">{booking.status.replaceAll('_', ' ')}</Badge>
+          </div>
+        </CardHeader>
+        {booking.private_notes && <CardContent><p className="text-xs font-medium text-muted-foreground">Private notes</p>
+          <p className="mt-1 whitespace-pre-wrap text-sm">{booking.private_notes}</p></CardContent>}
+      </Card></li>
     })}</ul>
   </div>
 }

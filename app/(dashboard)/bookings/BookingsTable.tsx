@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { CalendarDays, Clock3, Eye } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -78,9 +79,11 @@ function StatusBadge({ status }: { status: string }) {
 export default function BookingsTable({
   bookings,
   canWriteNotes,
+  timezone,
 }: {
   bookings: Booking[]
   canWriteNotes: boolean
+  timezone: string
 }) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
 
@@ -100,12 +103,12 @@ export default function BookingsTable({
               View customer details and upcoming appointments.
             </p>
           </div>
-          <div className="w-fit rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
+          <Badge variant="secondary">
             {bookings.length} {bookings.length === 1 ? 'booking' : 'bookings'}
-          </div>
+          </Badge>
         </div>
 
-        <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:block">
+        <Card className="hidden py-0 md:block">
           <Table>
             <TableHeader className="bg-slate-50/80">
               <TableRow className="border-slate-200 hover:bg-transparent">
@@ -171,14 +174,14 @@ export default function BookingsTable({
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Card>
 
         <div className="space-y-3 md:hidden">
           {bookings.map((booking) => (
-            <article
+            <Card
               key={booking.id}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
             >
+              <CardContent>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="truncate font-semibold text-slate-950">
@@ -216,14 +219,17 @@ export default function BookingsTable({
                 <Eye aria-hidden="true" data-icon="inline-start" />
                 View booking
               </Button>
-            </article>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </section>
 
       <BookingSheet
+        key={selectedBooking?.id ?? 'none'}
         booking={selectedBooking}
         canWriteNotes={canWriteNotes}
+        timezone={timezone}
         onClose={() => setSelectedBooking(null)}
       />
     </>

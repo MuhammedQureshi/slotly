@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase'
 import BookingsTable from './BookingsTable'
 import ManualBookingForm from './ManualBookingForm'
 import { getEntitlements } from '@/lib/plans'
+import { buttonVariants } from '@/components/ui/button'
+import { Download } from 'lucide-react'
 
 export default async function Bookings() {
   const { userId: clerkUserId } = await auth()
@@ -25,7 +27,7 @@ export default async function Bookings() {
 
   const { data: bookingPages } = await supabase
   .from('booking_pages')
-  .select('id')
+  .select('id, timezone')
   .eq('user_id', user.id)
 
   if (!bookingPages || bookingPages.length === 0) {
@@ -43,13 +45,14 @@ export default async function Bookings() {
   .order('starts_at', { ascending: false })
 
   return (
-    <div className="items-center justify-center">
-      <div className="mb-4 flex gap-4 text-sm text-amber-800">
-        <a href="/api/export?kind=appointments" className="underline">Download appointments CSV</a>
-        <a href="/api/export?kind=customers" className="underline">Download customers CSV</a>
+    <div>
+      <div className="mb-6 flex flex-wrap gap-2">
+        <a href="/api/export?kind=appointments" className={buttonVariants({ variant: 'outline' })}><Download aria-hidden="true" /> Appointments CSV</a>
+        <a href="/api/export?kind=customers" className={buttonVariants({ variant: 'outline' })}><Download aria-hidden="true" /> Customers CSV</a>
       </div>
-      <ManualBookingForm services={services ?? []} />
-      <BookingsTable bookings={bookings ?? []} canWriteNotes={getEntitlements(user.plan).customerHistoryAndNotes} />
+      <ManualBookingForm services={services ?? []} timezone={bookingPages[0].timezone || 'Europe/London'} />
+      <BookingsTable bookings={bookings ?? []} canWriteNotes={getEntitlements(user.plan).customerHistoryAndNotes}
+        timezone={bookingPages[0].timezone || 'Europe/London'} />
     </div>
   )
 }

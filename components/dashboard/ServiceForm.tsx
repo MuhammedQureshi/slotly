@@ -17,15 +17,11 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from '../ui/textarea'
 import { Button } from '../ui/button'
+import { Label } from '@/components/ui/label'
 import { useToast } from '../ui/toast'
 
 const DURATION_OPTIONS = [15, 30, 45, 60, 90, 120]
 
-// TODO: Zod schema with these fields:
-// - name: required string
-// - duration_minutes: number (hint: z.coerce.number() — because selects return strings)
-// - price: optional string (you'll convert to pence in the action)
-// - description: optional string, max 200 chars
 const schema = z.object({
   name: z
     .string()
@@ -59,13 +55,12 @@ type FormValues = z.infer<typeof schema>
 
 type Props = {
   bookingPageId: string
-  service?: FormValues & { id: string }  // if passed, we're editing not creating
-  onSuccess: () => void                  // called after save to close the Sheet
+  service?: FormValues & { id: string }
+  onSuccess: () => void
 }
 
 export default function ServiceForm({ bookingPageId, service, onSuccess }: Props) {
   const { toast } = useToast()
-  // TODO: useForm with zodResolver
   const {
   register,
   control,
@@ -81,8 +76,6 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
   },
 })
 
-  // TODO: if service is passed, set defaultValues from it
-  //       (this is how the same form works for both add and edit)
   const onSubmit = async (data: FormValues) => {
   const formData = new FormData()
 
@@ -129,11 +122,10 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-5 p-6">
 
-  {/* Name */}
   <div className="grid gap-2">
-    <label htmlFor="name" className="text-sm font-medium">
+    <Label htmlFor="name">
       Service Name
-    </label>
+    </Label>
 
     <Input
       id="name"
@@ -151,11 +143,10 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
   </div>
 
 
-  {/* Duration */}
   <div className="grid gap-2">
-    <label className="text-sm font-medium">
+    <Label htmlFor="service-duration">
       Duration
-    </label>
+    </Label>
 
     <Controller
       name="duration_minutes"
@@ -165,7 +156,7 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
           value={field.value?.toString()}
           onValueChange={(value) => field.onChange(Number(value))}
         >
-          <SelectTrigger className="h-10 w-full">
+          <SelectTrigger id="service-duration" className="h-10 w-full">
             <SelectValue placeholder="Select duration" />
           </SelectTrigger>
 
@@ -196,11 +187,10 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
   </div>
 
 
-  {/* Price */}
   <div className="grid gap-2">
-    <label htmlFor="price" className="text-sm font-medium">
+    <Label htmlFor="price">
       Price
-    </label>
+    </Label>
 
     <div className="relative">
       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -228,11 +218,10 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
   </div>
 
 
-  {/* Description */}
   <div className="grid gap-2">
-    <label htmlFor="description" className="text-sm font-medium">
+    <Label htmlFor="description">
       Description
-    </label>
+    </Label>
 
     <Textarea
       id="description"
@@ -250,7 +239,7 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
   </div>
 
 
-  <Button type="submit" size="lg" className="mt-1 bg-stone-950 hover:bg-stone-800" disabled={isSubmitting}>
+  <Button type="submit" size="lg" className="mt-1" disabled={isSubmitting}>
     {isSubmitting ? 'Saving…' : service ? 'Save changes' : 'Create service'}
   </Button>
 

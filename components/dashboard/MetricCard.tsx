@@ -1,5 +1,6 @@
 import { LockKeyhole } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 
 type Props = {
   label: string
@@ -19,7 +20,8 @@ export default function MetricCard({
   lockedDescription = 'Upgrade to view this metric',
 }: Props) {
   return (
-    <article className="relative min-h-38 overflow-hidden rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+    <Card className="relative min-h-38">
+      <CardContent>
       {locked ? (
         <>
           <div aria-hidden="true" className="pointer-events-none select-none blur-[3px]">
@@ -58,6 +60,7 @@ export default function MetricCard({
           ) : null}
         </>
       )}
-    </article>
+      </CardContent>
+    </Card>
   )
 }

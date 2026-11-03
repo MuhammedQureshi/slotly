@@ -25,6 +25,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 import { useUserPlan } from '@/lib/useUserPlan'
 
 const NAV = [
@@ -59,16 +60,16 @@ function NavLinks({ pathname, showUpgrade, onNavigate }: NavLinksProps) {
             className={cn(
               'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
               isActive
-                ? 'bg-amber-50 text-amber-800'
-                : 'text-stone-600 hover:bg-stone-50 hover:text-stone-950'
+                ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-sidebar-foreground'
             )}
           >
             <Icon aria-hidden="true" className="size-4" />
             {label}
             {href === '/billing' && showUpgrade && (
-              <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-800 uppercase">
+              <Badge variant="secondary" className="ml-auto bg-amber-100 text-[10px] text-amber-800">
                 Upgrade
-              </span>
+              </Badge>
             )}
           </Link>
         )
@@ -87,9 +88,9 @@ function Brand() {
 
 function Account({ userName }: { userName?: string | null }) {
   return (
-    <div className="flex items-center border-t border-stone-200 p-4">
+    <div className="flex items-center border-t border-sidebar-border p-4">
       <UserButton />
-      <span className="ml-3 truncate text-sm font-medium text-stone-800">
+      <span className="ml-3 truncate text-sm font-medium text-sidebar-foreground">
         {userName || 'Account'}
       </span>
     </div>
@@ -104,18 +105,18 @@ export function Sidebar({ userName }: { userName?: string | null }) {
 
   return (
     <>
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-stone-200 bg-white px-4 md:hidden">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 md:hidden">
         <Brand />
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger
             render={
-              <Button variant="outline" size="icon" className="border-stone-200" aria-label="Open navigation">
+              <Button variant="outline" size="icon" aria-label="Open navigation">
                 <Menu aria-hidden="true" className="size-5" />
               </Button>
             }
           />
           <SheetContent side="left" className="w-[min(20rem,85vw)] gap-0 p-0 sm:max-w-xs">
-            <SheetHeader className="border-b border-stone-200 p-5">
+            <SheetHeader className="border-b p-5">
               <SheetTitle>
                 <span className="text-xl font-bold tracking-tight text-stone-950">
                   Slot<span className="text-amber-500">ly</span>
@@ -133,8 +134,8 @@ export function Sidebar({ userName }: { userName?: string | null }) {
         </Sheet>
       </header>
 
-      <aside className="hidden w-56 shrink-0 flex-col border-r border-stone-200 bg-white md:flex">
-        <div className="border-b border-stone-200 p-5">
+      <aside className="hidden w-56 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+        <div className="border-b border-sidebar-border p-5">
           <Brand />
         </div>
         <NavLinks pathname={pathname} showUpgrade={showUpgrade} />

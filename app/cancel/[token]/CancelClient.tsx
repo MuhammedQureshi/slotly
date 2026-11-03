@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { CheckCircle2, LoaderCircle } from 'lucide-react'
 import { cancelBookingByToken } from './actions'
+import { Button } from '@/components/ui/button'
 
 export default function CancelClient({ token }: { token: string }) {
   const [isCancelling, setIsCancelling] = useState(false)
@@ -46,15 +47,16 @@ export default function CancelClient({ token }: { token: string }) {
         Are you sure you want to cancel this appointment? This cannot be undone.
       </p>
       {error ? <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
-      <button
+      <Button
         type="button"
+        variant="destructive"
         disabled={isCancelling}
         onClick={handleCancel}
-        className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-5 w-full"
       >
         {isCancelling ? <LoaderCircle aria-hidden="true" className="size-4 animate-spin" /> : null}
         {isCancelling ? 'Cancelling…' : 'Yes, cancel my booking'}
-      </button>
+      </Button>
     </div>
   )
 }

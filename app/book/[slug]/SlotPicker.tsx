@@ -3,7 +3,9 @@
 import { useRef, useState } from 'react'
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz'
 import { ArrowLeft, CalendarDays, LoaderCircle } from 'lucide-react'
-import { DayPicker } from 'react-day-picker'
+import { Calendar } from '@/components/ui/calendar'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 
 type Props = {
   pageId: string
@@ -99,14 +101,16 @@ export default function SlotPicker({
     <div>
       <div className="mb-6 flex items-start gap-3">
         {showBackButton && (
-          <button
+          <Button
             type="button"
             onClick={onBack}
-            className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+            variant="outline"
+            size="icon"
+            className="mt-0.5"
           >
             <ArrowLeft aria-hidden="true" className="size-4" />
             <span className="sr-only">Back to services</span>
-          </button>
+          </Button>
         )}
         <div>
           <h2 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -119,39 +123,20 @@ export default function SlotPicker({
       </div>
 
       <div className="grid gap-6 md:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)]">
-        <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <DayPicker
+        <Card className="min-w-0">
+          <CardContent className="flex justify-center">
+          <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={handleDateSelect}
             disabled={{ before: today }}
             timeZone={timezone}
-            showOutsideDays
-            classNames={{
-              root: 'relative w-full',
-              months: 'w-full',
-              month: 'w-full',
-              month_caption: 'relative z-10 mb-3 flex h-11 items-center justify-center px-12',
-              caption_label: 'text-sm font-semibold text-slate-950',
-              nav: 'pointer-events-none absolute inset-x-0 top-0 z-20 flex h-11 items-center justify-between',
-              button_previous: 'pointer-events-auto inline-flex size-11 shrink-0 touch-manipulation cursor-pointer items-center justify-center rounded-lg border border-transparent bg-white text-slate-500 transition hover:border-slate-200 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:pointer-events-none disabled:opacity-30',
-              button_next: 'pointer-events-auto inline-flex size-11 shrink-0 touch-manipulation cursor-pointer items-center justify-center rounded-lg border border-transparent bg-white text-slate-500 transition hover:border-slate-200 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:pointer-events-none disabled:opacity-30',
-              chevron: 'pointer-events-none size-4 fill-current',
-              month_grid: 'relative z-0 w-full table-fixed border-collapse',
-              weekdays: 'border-b border-slate-100',
-              weekday: 'w-1/7 pb-2 text-center text-xs font-medium text-slate-400',
-              week: 'mt-1',
-              day: 'w-1/7 p-px text-center text-sm text-slate-700',
-              day_button: 'mx-auto grid aspect-square w-full max-w-9 place-items-center rounded-lg transition hover:bg-amber-50 hover:text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-amber-500',
-              selected: '[&>button]:bg-amber-500 [&>button]:font-semibold [&>button]:text-stone-950 [&>button]:hover:bg-amber-500',
-              today: '[&>button]:font-semibold [&>button]:ring-1 [&>button]:ring-inset [&>button]:ring-slate-300',
-              outside: 'opacity-30',
-              disabled: 'cursor-not-allowed opacity-25 [&>button]:pointer-events-none',
-            }}
+            showOutsideDays={false}
           />
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <Card><CardContent>
           {selectedDate ? (
             <>
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
@@ -175,19 +160,16 @@ export default function SlotPicker({
                       const isSelected = selectedSlot === slot
 
                       return (
-                        <button
+                        <Button
                           key={slot}
                           type="button"
                           aria-pressed={isSelected}
                           onClick={() => setSelectedSlot(slot)}
-                          className={
-                            isSelected
-                              ? 'h-10 rounded-lg border border-amber-500 bg-amber-500 text-sm font-semibold text-stone-950 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600'
-                              : 'h-10 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900'
-                          }
+                          variant={isSelected ? 'default' : 'outline'}
+                          className="h-10 w-full"
                         >
                           {formatSlotTime(slot)}
-                        </button>
+                        </Button>
                       )
                     })}
                   </div>
@@ -199,13 +181,14 @@ export default function SlotPicker({
               </div>
 
               {selectedSlot && (
-                <button
+                <Button
                   type="button"
                   onClick={() => onContinue(selectedSlot)}
-                  className="mt-5 h-11 w-full rounded-xl bg-slate-950 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                  size="lg"
+                  className="mt-5 w-full"
                 >
                   Continue
-                </button>
+                </Button>
               )}
             </>
           ) : (
@@ -219,7 +202,7 @@ export default function SlotPicker({
               </p>
             </div>
           )}
-        </div>
+        </CardContent></Card>
       </div>
     </div>
   )

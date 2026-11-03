@@ -7,6 +7,9 @@ import {
   Smartphone,
 } from 'lucide-react'
 import Link from 'next/link'
+import { Badge } from '@/components/ui/badge'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 const services = [
   ['Skin fade', '45 min', '£25'],
@@ -48,7 +51,7 @@ export default function Home() {
           </Link>
           <Link
             href="/sign-up"
-            className="inline-flex h-10 items-center rounded-full bg-amber-400 px-4 text-sm font-semibold text-stone-950 transition hover:bg-amber-300"
+            className={cn(buttonVariants({ size: 'lg' }), 'rounded-full bg-amber-400 text-stone-950 hover:bg-amber-300')}
           >
             Start free
           </Link>
@@ -58,10 +61,10 @@ export default function Home() {
       <section className="relative mx-auto grid max-w-6xl gap-14 px-5 pb-20 pt-14 sm:px-8 sm:pt-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:pb-28">
         <div className="absolute -right-40 top-10 size-96 rounded-full bg-amber-400/10 blur-3xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-xs font-semibold tracking-wide text-amber-300 uppercase">
+          <Badge variant="outline" className="h-auto gap-2 border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-amber-300">
             <Scissors aria-hidden="true" className="size-3.5" />
             Built for barbers
-          </div>
+          </Badge>
           <h1 className="mt-6 max-w-2xl text-5xl font-semibold leading-[1.02] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">
             Less time arranging. More time cutting.
           </h1>
@@ -72,14 +75,14 @@ export default function Home() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/sign-up"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 text-sm font-semibold text-stone-950 transition hover:bg-amber-300"
+              className={cn(buttonVariants({ size: 'lg' }), 'h-12 bg-amber-400 px-5 text-stone-950 hover:bg-amber-300')}
             >
               Create your booking page
               <ArrowRight aria-hidden="true" className="size-4" />
             </Link>
             <Link
               href="/sign-in"
-              className="inline-flex h-12 items-center justify-center rounded-xl border border-stone-700 px-5 text-sm font-semibold text-white transition hover:border-stone-500 hover:bg-stone-900"
+              className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'h-12 border-stone-700 bg-transparent px-5 text-white hover:border-stone-500 hover:bg-stone-900 hover:text-white')}
             >
               Sign in
             </Link>
