@@ -7,8 +7,7 @@ update public.users set ever_pro = true
   where plan = 'pro' or stripe_subscription_id is not null;
 update public.users set plan = 'free'
   where plan is null and stripe_customer_id is null and stripe_subscription_id is null;
-revoke update (plan, stripe_customer_id, stripe_subscription_id, ever_pro)
-  on public.users from anon, authenticated;
+revoke update on public.users from anon, authenticated;
 create index if not exists bookings_page_start_status_idx
   on public.bookings (booking_page_id, starts_at, status);
 

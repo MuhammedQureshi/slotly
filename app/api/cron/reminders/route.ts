@@ -13,7 +13,9 @@ export async function GET(request: Request) {
   const { data, error } = await supabaseAdmin.from('bookings')
     .select('id, booking_page_id, customer_email, customer_name, starts_at, service:service_id(name)')
     .eq('status', 'confirmed').is('reminder_sent_at', null)
-    .gt('starts_at', new Date(now + 24 * 3600_000).toISOString())
+    // The first hourly run in this window sends about 24 hours ahead. A wider
+    // lower bound lets a delayed scheduler catch up without sending twice.
+    .gt('starts_at', new Date(now + 18 * 3600_000).toISOString())
     .lte('starts_at', new Date(now + 25 * 3600_000).toISOString())
     .limit(200)
   if (error) return new Response('Unable to load reminders', { status: 500 })

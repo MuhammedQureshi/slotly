@@ -3,6 +3,10 @@
 The app code in this change requires `supabase/migrations/20261103_booking_entitlements.sql`.
 Do not deploy the app code before applying that migration: public and manual booking
 creation call `create_booking_with_limit`, and availability reads the new break fields.
+The migration was applied to the Slotly production Supabase project on 2026-11-03.
+Verification showed three Pro users, one Free user, twelve preserved bookings,
+all three booking functions, the new fields and logo bucket, and server-only
+booking write access.
 
 ## Before the migration
 
@@ -24,9 +28,10 @@ without an error before deploying the corresponding app commit.
 
 - Keep the existing test-mode `STRIPE_SECRET_KEY`, `STRIPE_PRO_PRICE_ID` (£6.99
   GBP monthly), `STRIPE_WEBHOOK_SECRET`, and Stripe portal configuration.
-- Add a long random `CRON_SECRET` to Vercel Production. Configure an hourly HTTPS
-  scheduler to request `GET /api/cron/reminders` with
-  `Authorization: Bearer <CRON_SECRET>`. The route is inert without that secret.
+- Add the same long random value as `CRON_SECRET` in Vercel Production and
+  `SLOTLY_CRON_SECRET` in this GitHub repository's Actions secrets. The included
+  workflow calls the reminders route hourly at minute 17 UTC. The route is inert
+  without the Vercel secret. Run the workflow manually once after deployment.
 - Ensure `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and `NEXT_PUBLIC_APP_URL` point to
   the intended email sender and public Slotly URL. Resend test sending may only
   deliver to its allowed test recipient until the sender domain is verified.

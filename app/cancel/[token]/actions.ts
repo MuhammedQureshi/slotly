@@ -54,7 +54,9 @@ export async function rescheduleBookingByToken(token: string, localTime: string)
   const { data: booking } = await supabaseAdmin.from('bookings')
     .select('id, booking_page_id, service_id, customer_name, customer_email, price_pence, starts_at, ends_at, status')
     .eq('cancel_token', token).maybeSingle()
-  if (!booking || booking.status !== 'confirmed') return { error: 'Booking not found.' }
+  if (!booking || booking.status !== 'confirmed' || new Date(booking.starts_at) <= new Date()) {
+    return { error: 'This appointment can no longer be changed online.' }
+  }
   const { data: page } = await supabaseAdmin.from('booking_pages')
     .select('business_name, timezone, buffer_minutes, min_notice_hours')
     .eq('id', booking.booking_page_id).single()
@@ -66,9 +68,15 @@ export async function rescheduleBookingByToken(token: string, localTime: string)
   if (formatInTimeZone(start, timezone, "yyyy-MM-dd'T'HH:mm") !== localTime) {
     return { error: 'Choose a valid appointment time.' }
   }
-  const slots = await getAvailableSlots(booking.booking_page_id, localTime.slice(0, 10),
-    service.duration_minutes, timezone, page.buffer_minutes ?? 0,
-    page.min_notice_hours ?? 0, booking.id)
+  let slots: string[]
+  try {
+    slots = await getAvailableSlots(booking.booking_page_id, localTime.slice(0, 10),
+      service.duration_minutes, timezone, page.buffer_minutes ?? 0,
+      page.min_notice_hours ?? 0, booking.id)
+  } catch (slotError) {
+    console.error('Reschedule availability check failed:', slotError)
+    return { error: 'Unable to check that time. Please try again.' }
+  }
   if (!slots.includes(start.toISOString())) return { error: 'That time is unavailable.' }
   const end = new Date(start.getTime() + service.duration_minutes * 60_000)
   const { error } = await supabaseAdmin.rpc('reschedule_booking_with_limit', {
