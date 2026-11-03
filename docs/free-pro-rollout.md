@@ -7,6 +7,10 @@ The migration was applied to the Slotly production Supabase project on 2026-11-0
 Verification showed three Pro users, one Free user, twelve preserved bookings,
 all three booking functions, the new fields and logo bucket, and server-only
 booking write access.
+The follow-up `supabase/migrations/20261103_reminder_reschedules.sql` was also
+applied on 2026-11-03. Its column, trigger and claim function were verified,
+with all twelve bookings preserved. It makes moved appointments use the move
+time for the 24-hour reminder rule.
 
 ## Before the migration
 
