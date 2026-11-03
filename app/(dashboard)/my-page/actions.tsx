@@ -7,6 +7,7 @@ import { generateSlug } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
 import { BOOKING_PAGE_LIMIT } from '@/lib/plans'
 import { getEntitlements } from '@/lib/plans'
+import { isAccessibleBookingAccent } from '@/lib/branding'
 import { z } from 'zod'
 
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/
@@ -49,10 +50,7 @@ export async function saveBranding(formData: FormData) {
   if (!page) return { error: 'Create your booking page first.' }
   const color = String(formData.get('accent_color') ?? '')
   if (!/^#[0-9a-fA-F]{6}$/.test(color)) return { error: 'Choose a valid colour.' }
-  const channels = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16) / 255)
-  const luminance = channels.map((channel) => channel <= 0.04045
-    ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
-  if (luminance[0] * 0.2126 + luminance[1] * 0.7152 + luminance[2] * 0.0722 > 0.16) {
+  if (!isAccessibleBookingAccent(color)) {
     return { error: 'Choose a darker colour so white text remains readable.' }
   }
   const file = formData.get('logo')

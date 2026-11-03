@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js'
 import { ExternalLink } from 'lucide-react'
 import BrandingForm from './BrandingForm'
 import { getEntitlements } from '@/lib/plans'
+import { bookingAccent } from '@/lib/branding'
 
 function getSupabase() {
   return createClient(
@@ -68,6 +69,8 @@ export default async function Mypage() {
   ])
 
 
+  const accent = bookingAccent(bookingPage.accent_color, getEntitlements(user.plan).customBranding)
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-5 border-b border-stone-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
@@ -105,7 +108,7 @@ export default async function Mypage() {
           businessName={bookingPage.business_name}
           businessType={bookingPage.business_type}
           description={bookingPage.description ?? ''}
-          accent={getEntitlements(user.plan).customBranding ? (bookingPage.accent_color || '#0c0a09') : '#0c0a09'}
+          accent={accent}
           services={services ?? []}
           />
         </div>
@@ -115,7 +118,7 @@ export default async function Mypage() {
         />
       </div>
       {getEntitlements(user.plan).customBranding
-        ? <BrandingForm color={bookingPage.accent_color || '#0c0a09'} />
+        ? <BrandingForm color={accent} />
         : <p className="text-sm text-stone-600">Custom colours and a logo are available on Pro. <a href="/billing" className="underline">View plans</a></p>}
     </div>
   )

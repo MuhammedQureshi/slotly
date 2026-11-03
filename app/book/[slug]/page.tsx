@@ -3,6 +3,7 @@ import Image from 'next/image'
 
 import { supabaseAdmin } from "@/lib/supabase"
 import { getEntitlements } from '@/lib/plans'
+import { bookingAccent } from '@/lib/branding'
 import BookingPageFlow from "./BookingFlow"
 
 export default async function BookingPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -37,8 +38,7 @@ export default async function BookingPage({ params }: { params: Promise<{ slug: 
   const { data: owner } = await supabaseAdmin.from('users').select('plan')
     .eq('id', data.user_id).maybeSingle()
   const customBranding = getEntitlements(owner?.plan).customBranding
-  const accent = customBranding && /^#[0-9a-fA-F]{6}$/.test(data.accent_color || '')
-    ? data.accent_color : '#0c0a09'
+  const accent = bookingAccent(data.accent_color, customBranding)
   const logo = customBranding
     ? data.logo_path
       ? supabaseAdmin.storage.from('booking-logos').getPublicUrl(data.logo_path).data.publicUrl
