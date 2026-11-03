@@ -3,9 +3,9 @@ import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getEntitlements } from '@/lib/plans'
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DatePicker } from '@/components/ui/date-picker'
+import StatisticsDateFilter from './StatisticsDateFilter'
 
 function validDate(value: string | undefined): value is string {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
@@ -33,8 +33,9 @@ export default async function StatsPage({ searchParams }: {
   const today = formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd')
   const first = `${today.slice(0, 7)}-01`
   const from = validDate(requested.from) ? requested.from : first
-  const to = validDate(requested.to) ? requested.to : today
-  if (from > to) return <p>Start date must be before end date.</p>
+  const requestedTo = validDate(requested.to) ? requested.to : today
+  const rangeAdjusted = from > requestedTo
+  const to = rangeAdjusted ? from : requestedTo
   const dayAfter = new Date(`${to}T12:00:00Z`)
   dayAfter.setUTCDate(dayAfter.getUTCDate() + 1)
   const start = fromZonedTime(`${from}T00:00:00`, timezone).toISOString()
@@ -55,11 +56,8 @@ export default async function StatsPage({ searchParams }: {
     <header><h1 className="text-3xl font-semibold tracking-tight">Booking statistics</h1>
       <p className="mt-2 text-sm text-muted-foreground">A closer look at appointments and estimated service value.</p></header>
     <Card><CardContent>
-      <form className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
-        <DatePicker label="From" name="from" defaultValue={from} timezone={timezone} />
-        <DatePicker label="To" name="to" defaultValue={to} timezone={timezone} />
-        <Button type="submit">Apply dates</Button>
-      </form>
+      <StatisticsDateFilter key={`${from}:${to}`} initialFrom={from} initialTo={to}
+        timezone={timezone} rangeAdjusted={rangeAdjusted} />
     </CardContent></Card>
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {([
