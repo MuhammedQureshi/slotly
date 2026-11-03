@@ -20,6 +20,8 @@ export type DayRule = {
   is_active: boolean
   start_time: string   // '09:00'
   end_time: string     // '17:00'
+  break_start?: string | null
+  break_end?: string | null
 }
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -42,6 +44,8 @@ function mergeAvailability(rules: DayRule[]) {
         ...rule,
         start_time: rule.start_time.slice(0, 5),
         end_time: rule.end_time.slice(0, 5),
+        break_start: rule.break_start?.slice(0, 5) ?? null,
+        break_end: rule.break_end?.slice(0, 5) ?? null,
       },
     ])
   )
@@ -74,10 +78,10 @@ export default function AvailabilityEditor({
 
   // TODO: write an updateTime function that updates start_time or end_time
   // it needs to know: which day, which field ('start_time' or 'end_time'), and the new value
-  function updateTime(day_of_week: number, field: 'start_time' | 'end_time', value: string) {
+  function updateTime(day_of_week: number, field: 'start_time' | 'end_time' | 'break_start' | 'break_end', value: string) {
     setDays(currentDays => currentDays.map(day =>
         day.day_of_week === day_of_week ?
-        { ...day, [field]: value } :
+        { ...day, [field]: field.startsWith('break_') ? (value || null) : value } :
             day
     ))
   }
@@ -140,6 +144,7 @@ export default function AvailabilityEditor({
           // TODO: two selects for start_time and end_time
           // each one maps over timeOptions
           // onChange calls updateTime with the right field
+            <>
             <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
               <Select
                 value={day.start_time}
@@ -173,6 +178,15 @@ export default function AvailabilityEditor({
                 </SelectContent>
               </Select>
             </div>
+            <div className="mt-3 flex items-center gap-2 text-xs text-stone-600">
+              <span>Break</span>
+              <input aria-label={`${DAY_NAMES[day.day_of_week]} break start`} type="time" value={day.break_start ?? ''}
+                onChange={(event) => updateTime(day.day_of_week, 'break_start', event.target.value)} className="min-w-0 rounded border p-1" />
+              <span>to</span>
+              <input aria-label={`${DAY_NAMES[day.day_of_week]} break end`} type="time" value={day.break_end ?? ''}
+                onChange={(event) => updateTime(day.day_of_week, 'break_end', event.target.value)} className="min-w-0 rounded border p-1" />
+            </div>
+            </>
           ) : (
             <p className="mt-2 text-xs text-stone-400">Unavailable</p>
           )}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   CalendarDays,
   Clock3,
@@ -29,12 +30,14 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 
-import { cancelBooking } from './actions'
+import { cancelBooking, savePrivateNotes } from './actions'
+import { rescheduleBookingByToken } from '@/app/cancel/[token]/actions'
 import type { Booking } from './BookingsTable'
 
 type Props = {
   booking: Booking | null
   onClose: () => void
+  canWriteNotes: boolean
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
@@ -87,10 +90,12 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-export default function BookingSheet({ booking, onClose }: Props) {
+export default function BookingSheet({ booking, onClose, canWriteNotes }: Props) {
+  const router = useRouter()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
   const [error, setError] = useState<string>()
+  const [noteMessage, setNoteMessage] = useState('')
 
   const closeSheet = () => {
     setConfirmOpen(false)
@@ -249,8 +254,36 @@ export default function BookingSheet({ booking, onClose }: Props) {
                 </div>
               </dl>
 
+              <div className="mt-6 border-t border-slate-200 pt-5">
+                <p className="text-sm font-semibold">Private barber notes</p>
+                {canWriteNotes ? <form key={booking.id} onSubmit={async (event) => {
+                  event.preventDefault()
+                  const notes = String(new FormData(event.currentTarget).get('private_notes') ?? '')
+                  const result = await savePrivateNotes(booking.id, notes)
+                  setNoteMessage(result.error ?? 'Notes saved.')
+                }}>
+                  <textarea name="private_notes" defaultValue={booking.private_notes ?? ''} maxLength={2000}
+                    className="mt-2 min-h-24 w-full rounded-lg border border-stone-300 p-2 text-sm" />
+                  <button className="rounded-lg bg-stone-900 px-3 py-2 text-sm text-white">Save notes</button>
+                  {noteMessage && <p role="status" className="mt-2 text-xs">{noteMessage}</p>}
+                </form> : <p className="mt-2 whitespace-pre-wrap text-sm text-stone-600">
+                  {booking.private_notes || 'Upgrade to Pro to add private notes.'}
+                </p>}
+              </div>
+
               {booking.status.toLowerCase() === 'confirmed' ? (
                 <div className="mt-8 border-t border-slate-200 pt-6">
+                  <form onSubmit={async (event) => {
+                    event.preventDefault()
+                    const value = String(new FormData(event.currentTarget).get('starts_at') ?? '')
+                    const result = await rescheduleBookingByToken(booking.cancel_token, value)
+                    setNoteMessage(result.error ?? 'Appointment moved.')
+                    if (result.success) router.refresh()
+                  }} className="mb-5">
+                    <label className="block text-sm font-medium">Move appointment</label>
+                    <input type="datetime-local" name="starts_at" required className="mt-2 w-full rounded-lg border border-stone-300 p-2" />
+                    <button className="mt-2 rounded-lg bg-stone-900 px-3 py-2 text-sm text-white">Save new time</button>
+                  </form>
                   <Button
                     variant="destructive"
                     className="h-10 w-full"

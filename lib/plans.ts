@@ -1,7 +1,21 @@
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
 
-export const FREE_MONTHLY_BOOKING_LIMIT = 25
-export const FREE_BOOKING_PAGE_LIMIT = 1
+export const FREE_MONTHLY_BOOKING_LIMIT = 20
+export const BOOKING_PAGE_LIMIT = 1
+
+export function getEntitlements(plan: string | null | undefined) {
+  const pro = plan === 'pro'
+  return {
+    pro,
+    calendars: BOOKING_PAGE_LIMIT,
+    monthlyBookings: pro ? null : FREE_MONTHLY_BOOKING_LIMIT,
+    customBranding: pro,
+    reminders: pro,
+    customerHistoryAndNotes: pro,
+    statistics: pro,
+    qrCode: pro,
+  }
+}
 
 export function isProPlan(plan: string | null | undefined) {
   return plan === 'pro'

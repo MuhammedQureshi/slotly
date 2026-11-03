@@ -3,10 +3,11 @@ import { CalendarDays, CheckCircle2 } from 'lucide-react'
 import { z } from 'zod'
 import { supabaseAdmin } from '@/lib/supabase'
 import CancelClient from './CancelClient'
+import RescheduleClient from './RescheduleClient'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
-  title: 'Cancel your booking | Slotly',
+  title: 'Manage your booking | Slotly',
   robots: { index: false, follow: false },
   referrer: 'no-referrer',
 }
@@ -76,14 +77,16 @@ export default async function CancelPage({
       <div className="w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
         <span className="grid size-11 place-items-center rounded-xl bg-amber-50 text-amber-700"><CalendarDays aria-hidden="true" className="size-5" /></span>
         <p className="mt-5 text-xs font-semibold tracking-widest text-amber-700 uppercase">{pageResult.data.business_name}</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-stone-950">Cancel your booking</h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-stone-950">Manage your booking</h1>
         <dl className="mt-6 space-y-4 rounded-xl bg-stone-50 p-4 text-sm">
           <div><dt className="text-stone-500">Service</dt><dd className="mt-1 font-medium text-stone-950">{serviceResult.data?.name || 'Appointment'}</dd></div>
           <div><dt className="text-stone-500">Date</dt><dd className="mt-1 font-medium text-stone-950">{date}</dd></div>
           <div><dt className="text-stone-500">Time</dt><dd className="mt-1 font-medium text-stone-950">{time}</dd></div>
           <div><dt className="text-stone-500">Price</dt><dd className="mt-1 font-medium text-stone-950">{price}</dd></div>
         </dl>
-        <CancelClient token={token} />
+        {booking.status === 'confirmed' && new Date(booking.starts_at) > new Date()
+          ? <><CancelClient token={token} /><RescheduleClient token={token} /></>
+          : <p className="mt-6 text-sm text-stone-600">This appointment can no longer be changed online.</p>}
       </div>
     </main>
   )

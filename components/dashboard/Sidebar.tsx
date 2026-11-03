@@ -10,6 +10,8 @@ import {
   Menu,
   Scissors,
   Settings,
+  Users,
+  ChartNoAxesCombined,
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -28,6 +30,8 @@ import { useUserPlan } from '@/lib/useUserPlan'
 const NAV = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Bookings', href: '/bookings', icon: Calendar },
+  { label: 'Customers', href: '/customers', icon: Users },
+  { label: 'Statistics', href: '/stats', icon: ChartNoAxesCombined },
   { label: 'Services', href: '/services', icon: Scissors },
   { label: 'My Page', href: '/my-page', icon: Globe },
   { label: 'Billing', href: '/billing', icon: CreditCard },

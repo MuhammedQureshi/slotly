@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       .from('bookings')
       .select('id', { count: 'exact', head: true })
       .eq('booking_page_id', data.booking_page_id)
-      .neq('status', 'cancelled')
+      .in('status', ['confirmed', 'completed', 'no_show'])
       .gte('starts_at', month.start.toISOString())
       .lt('starts_at', month.end.toISOString())
 
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { data: booking, error: insertError } = await supabaseAdmin.rpc(
-    'create_booking',
+    'create_booking_with_limit',
     {
       p_booking_page_id: data.booking_page_id,
       p_service_id: data.service_id,
@@ -161,6 +161,16 @@ export async function POST(request: NextRequest) {
         { error: 'This slot has just been booked. Please choose another.' },
         { status: 409 }
       )
+    }
+
+    if (insertError.message.includes('monthly_booking_limit_reached')) {
+      return NextResponse.json(
+        { error: 'Please contact the shop for availability this month.', code: 'monthly_booking_limit_reached' },
+        { status: 409 }
+      )
+    }
+    if (insertError.message.includes('daily_booking_limit_reached')) {
+      return NextResponse.json({ error: 'Please contact the shop for availability.' }, { status: 429 })
     }
 
     return NextResponse.json(
@@ -187,7 +197,9 @@ export async function POST(request: NextRequest) {
     console.error('Booking saved, but create_booking did not return cancel_token')
   }
   return NextResponse.json(
-    { message: 'Booking created successfully.', booking },
+    { message: 'Booking created successfully.', booking: {
+      id: bookingRecord?.id, starts_at: startsAt.toISOString(), ends_at: endsAt.toISOString(),
+    } },
     { status: 201 }
   )
 }

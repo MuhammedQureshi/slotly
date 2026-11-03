@@ -7,6 +7,7 @@ import {
   UsersRound,
 } from 'lucide-react'
 import Link from 'next/link'
+import { formatInTimeZone } from 'date-fns-tz'
 
 import MetricCard from '@/components/dashboard/MetricCard'
 import RevenueMetricCard from '@/components/dashboard/RevenueMetricCard'
@@ -16,6 +17,7 @@ import {
 } from '@/lib/dashboard'
 import { supabaseAdmin } from '@/lib/supabase'
 import { isProPlan } from '@/lib/plans'
+import { FREE_MONTHLY_BOOKING_LIMIT } from '@/lib/plans'
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
   weekday: 'short',
@@ -42,7 +44,7 @@ function getStatusClassName(status: string) {
   }
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
   const [{ userId: clerkUserId }, clerkUser] = await Promise.all([
     auth(),
     currentUser(),
@@ -67,8 +69,21 @@ export default async function DashboardPage() {
   }
 
   const isPro = isProPlan(appUser.plan)
+  const { data: bookingPage } = await supabaseAdmin
+    .from('booking_pages').select('timezone').eq('user_id', appUser.id).limit(1).maybeSingle()
+  const timezone = bookingPage?.timezone || 'Europe/London'
+  const currentMonth = formatInTimeZone(new Date(), timezone, 'yyyy-MM')
+  const requestedMonth = (await searchParams).month
+  const month = requestedMonth && /^\d{4}-(0[1-9]|1[0-2])$/.test(requestedMonth)
+    ? requestedMonth : currentMonth
+  const monthDate = new Date(`${month}-01T12:00:00Z`)
+  const previousMonth = new Date(monthDate)
+  previousMonth.setUTCMonth(previousMonth.getUTCMonth() - 1)
+  const nextMonth = new Date(monthDate)
+  nextMonth.setUTCMonth(nextMonth.getUTCMonth() + 1)
+  const monthLabel = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(monthDate)
   const [metrics, recentBookings] = await Promise.all([
-    getDashboardMetrics(appUser.id, { includeRevenue: isPro }),
+    getDashboardMetrics(appUser.id, { includeRevenue: isPro, timezone, month }),
     getRecentBookings(appUser.id),
   ])
 
@@ -88,11 +103,22 @@ export default async function DashboardPage() {
         </p>
       </header>
 
+      {!isPro && (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-stone-900" aria-label="Monthly booking allowance">
+          <p className="font-semibold">{metrics.bookingsThisMonth} of {FREE_MONTHLY_BOOKING_LIMIT} bookings used for {monthLabel}</p>
+          <div className="mt-2 flex gap-4 text-sm text-amber-800">
+            {month > currentMonth && <Link href={`/dashboard?month=${previousMonth.toISOString().slice(0, 7)}`}>Previous month</Link>}
+            <Link href={`/dashboard?month=${nextMonth.toISOString().slice(0, 7)}`}>Next month</Link>
+          </div>
+          {metrics.bookingsThisMonth >= FREE_MONTHLY_BOOKING_LIMIT && <Link href="/billing" className="mt-3 inline-block text-sm font-semibold underline">Upgrade for unlimited bookings</Link>}
+        </section>
+      )}
+
       <section aria-label="Booking metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <MetricCard
           label="Bookings this month"
           value={metrics.bookingsThisMonth}
-          description="All appointments this month"
+          description={`Appointments scheduled for ${monthLabel}`}
           icon={CalendarDays}
         />
         <MetricCard
@@ -100,12 +126,14 @@ export default async function DashboardPage() {
           value={metrics.upcomingToday}
           description="Confirmed appointments today"
           icon={CalendarCheck2}
+          locked={!isPro}
         />
         <MetricCard
           label="Total customers"
           value={metrics.totalCustomers}
           description="Unique customer email addresses"
           icon={UsersRound}
+          locked={!isPro}
         />
         <RevenueMetricCard
           value={

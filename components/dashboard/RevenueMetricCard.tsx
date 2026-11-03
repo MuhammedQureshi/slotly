@@ -11,11 +11,12 @@ export default function RevenueMetricCard({ value }: { value?: string }) {
 
   return (
     <MetricCard
-      label="Revenue this month"
+      label="Estimated service value"
       value={value}
-      description="Confirmed and active bookings"
+      description="Based on appointment prices; payments happen at the shop"
       icon={PoundSterling}
       locked={loading || !isPro}
+      lockedDescription="Upgrade to view estimated service value"
     />
   )
 }

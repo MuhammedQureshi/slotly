@@ -21,7 +21,7 @@ export default function BookingConfirmation({ customerName, businessName, servic
           <Text>You have successfully booked a {serviceName} with {businessName} on {date} at {time}.</Text>
           <Text>Duration: {duration} minutes</Text>
           <Text>Price: {price}</Text>
-          <Button href={cancelUrl}>Cancel Booking</Button>
+          <Button href={cancelUrl}>Cancel or reschedule booking</Button>
         </Container>
       </Body>
     </Html>

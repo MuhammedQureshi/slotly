@@ -71,7 +71,7 @@ export async function GET(request: Request) {
       .from('bookings')
       .select('id', { count: 'exact', head: true })
       .eq('booking_page_id', pageId)
-      .neq('status', 'cancelled')
+      .in('status', ['confirmed', 'completed', 'no_show'])
       .gte('starts_at', month.start.toISOString())
       .lt('starts_at', month.end.toISOString())
 

@@ -1,4 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase'
+import { getBookingMonthBoundaries } from '@/lib/plans'
+import { fromZonedTime, formatInTimeZone } from 'date-fns-tz'
 
 export type DashboardMetrics = {
   bookingsThisMonth: number
@@ -15,23 +17,17 @@ export type RecentBooking = {
   service: { name: string } | null
 }
 
-function getPeriodBoundaries(now = new Date()) {
-  const startOfToday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  )
-  const startOfTomorrow = new Date(startOfToday)
-  startOfTomorrow.setDate(startOfTomorrow.getDate() + 1)
-
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+function getPeriodBoundaries(timezone: string, month: string, now = new Date()) {
+  const today = formatInTimeZone(now, timezone, 'yyyy-MM-dd')
+  const nextDay = new Date(`${today}T12:00:00Z`)
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1)
+  const bounds = getBookingMonthBoundaries(`${month}-01`, timezone)
 
   return {
-    startOfToday: startOfToday.toISOString(),
-    startOfTomorrow: startOfTomorrow.toISOString(),
-    startOfMonth: startOfMonth.toISOString(),
-    startOfNextMonth: startOfNextMonth.toISOString(),
+    startOfToday: fromZonedTime(`${today}T00:00:00`, timezone).toISOString(),
+    startOfTomorrow: fromZonedTime(`${nextDay.toISOString().slice(0, 10)}T00:00:00`, timezone).toISOString(),
+    startOfMonth: bounds.start.toISOString(),
+    startOfNextMonth: bounds.end.toISOString(),
   }
 }
 
@@ -50,7 +46,7 @@ async function getBookingPageIds(userId: string) {
 
 export async function getDashboardMetrics(
   userId: string,
-  options: { includeRevenue?: boolean } = {}
+  options: { includeRevenue?: boolean; timezone?: string; month?: string } = {}
 ): Promise<DashboardMetrics> {
   const bookingPageIds = await getBookingPageIds(userId)
 
@@ -68,14 +64,17 @@ export async function getDashboardMetrics(
     startOfTomorrow,
     startOfMonth,
     startOfNextMonth,
-  } = getPeriodBoundaries()
+  } = getPeriodBoundaries(
+    options.timezone ?? 'Europe/London',
+    options.month ?? formatInTimeZone(new Date(), options.timezone ?? 'Europe/London', 'yyyy-MM')
+  )
 
   const [monthResult, todayResult, customersResult, revenueResult] = await Promise.all([
     supabaseAdmin
       .from('bookings')
       .select('*', { count: 'exact', head: true })
       .in('booking_page_id', bookingPageIds)
-      .neq('status', 'cancelled')
+      .in('status', ['confirmed', 'completed', 'no_show'])
       .gte('starts_at', startOfMonth)
       .lt('starts_at', startOfNextMonth),
     supabaseAdmin
@@ -94,7 +93,7 @@ export async function getDashboardMetrics(
           .from('bookings')
           .select('price_pence')
           .in('booking_page_id', bookingPageIds)
-          .neq('status', 'cancelled')
+          .in('status', ['confirmed', 'completed', 'no_show'])
           .gte('starts_at', startOfMonth)
           .lt('starts_at', startOfNextMonth)
       : Promise.resolve({ data: null, error: null }),

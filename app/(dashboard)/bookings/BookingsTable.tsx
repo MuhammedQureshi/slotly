@@ -17,10 +17,12 @@ import BookingSheet from './BookingSheet'
 
 export type Booking = {
   id: string
+  cancel_token: string
   customer_name: string
   customer_email: string
   customer_phone: string | null
   customer_notes: string | null
+  private_notes?: string | null
   starts_at: string
   ends_at: string
   status: string
@@ -75,8 +77,10 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function BookingsTable({
   bookings,
+  canWriteNotes,
 }: {
   bookings: Booking[]
+  canWriteNotes: boolean
 }) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
 
@@ -219,6 +223,7 @@ export default function BookingsTable({
 
       <BookingSheet
         booking={selectedBooking}
+        canWriteNotes={canWriteNotes}
         onClose={() => setSelectedBooking(null)}
       />
     </>

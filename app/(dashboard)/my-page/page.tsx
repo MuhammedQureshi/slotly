@@ -4,6 +4,8 @@ import PagePreview from '@/components/dashboard/PagePreview'
 import { auth } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 import { ExternalLink } from 'lucide-react'
+import BrandingForm from './BrandingForm'
+import { getEntitlements } from '@/lib/plans'
 
 function getSupabase() {
   return createClient(
@@ -24,7 +26,7 @@ export default async function Mypage() {
 
   const { data: user } = await supabase
     .from('users')
-    .select('id')
+    .select('id, plan')
     .eq('clerk_user_id', clerkUserId)
     .single()
 
@@ -60,7 +62,7 @@ export default async function Mypage() {
       .order('sort_order'),
     supabase
       .from('availability_rules')
-      .select('day_of_week, is_active, start_time, end_time')
+      .select('day_of_week, is_active, start_time, end_time, break_start, break_end')
       .eq('booking_page_id', bookingPage.id)
       .order('day_of_week'),
   ])
@@ -83,6 +85,7 @@ export default async function Mypage() {
           View live page
           <ExternalLink aria-hidden="true" className="size-4" />
         </a>
+        {getEntitlements(user.plan).qrCode && <a href="/api/booking-qr" className="text-sm font-medium text-amber-800 underline">Download booking QR code</a>}
       </div>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
@@ -102,7 +105,7 @@ export default async function Mypage() {
           businessName={bookingPage.business_name}
           businessType={bookingPage.business_type}
           description={bookingPage.description ?? ''}
-          accent="#0c0a09"
+          accent={getEntitlements(user.plan).customBranding ? (bookingPage.accent_color || '#0c0a09') : '#0c0a09'}
           services={services ?? []}
           />
         </div>
@@ -111,6 +114,9 @@ export default async function Mypage() {
           initialRules={(availabilityRules ?? []) as DayRule[]}
         />
       </div>
+      {getEntitlements(user.plan).customBranding
+        ? <BrandingForm color={bookingPage.accent_color || '#0c0a09'} />
+        : <p className="text-sm text-stone-600">Custom colours and a logo are available on Pro. <a href="/billing" className="underline">View plans</a></p>}
     </div>
   )
 }

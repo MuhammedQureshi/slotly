@@ -5,7 +5,8 @@ import { createClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { generateSlug } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
-import { FREE_BOOKING_PAGE_LIMIT, isProPlan } from '@/lib/plans'
+import { BOOKING_PAGE_LIMIT } from '@/lib/plans'
+import { getEntitlements } from '@/lib/plans'
 import { z } from 'zod'
 
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/
@@ -17,15 +18,69 @@ const availabilitySchema = z
         is_active: z.boolean(),
         start_time: z.string().regex(timePattern),
         end_time: z.string().regex(timePattern),
+        break_start: z.string().regex(timePattern).nullable().optional(),
+        break_end: z.string().regex(timePattern).nullable().optional(),
       })
       .refine((day) => !day.is_active || day.start_time < day.end_time, {
         message: 'Closing time must be after opening time.',
+      })
+      .refine((day) => (!day.break_start && !day.break_end) ||
+        (!!day.break_start && !!day.break_end && day.break_start < day.break_end &&
+          day.break_start >= day.start_time && day.break_end <= day.end_time), {
+        message: 'Break must fall within working hours.',
       })
   )
   .length(7)
   .refine((days) => new Set(days.map((day) => day.day_of_week)).size === 7, {
     message: 'Availability must include each day exactly once.',
   })
+
+export async function saveBranding(formData: FormData) {
+  const { userId } = await auth()
+  if (!userId) return { error: 'Please sign in.' }
+  const supabase = getSupabase()
+  const { data: owner } = await supabase.from('users').select('id, plan')
+    .eq('clerk_user_id', userId).maybeSingle()
+  if (!owner || !getEntitlements(owner.plan).customBranding) {
+    return { error: 'Custom branding is available on Pro.' }
+  }
+  const { data: page } = await supabase.from('booking_pages').select('id')
+    .eq('user_id', owner.id).limit(1).maybeSingle()
+  if (!page) return { error: 'Create your booking page first.' }
+  const color = String(formData.get('accent_color') ?? '')
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) return { error: 'Choose a valid colour.' }
+  const channels = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16) / 255)
+  const luminance = channels.map((channel) => channel <= 0.04045
+    ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
+  if (luminance[0] * 0.2126 + luminance[1] * 0.7152 + luminance[2] * 0.0722 > 0.16) {
+    return { error: 'Choose a darker colour so white text remains readable.' }
+  }
+  const file = formData.get('logo')
+  let logoPath: string | undefined
+  if (file instanceof File && file.size > 0) {
+    if (file.size > 2_097_152 || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      return { error: 'Use a PNG, JPEG or WebP logo under 2 MB.' }
+    }
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const png = file.type === 'image/png' && bytes.slice(0, 4).join(',') === '137,80,78,71'
+    const jpeg = file.type === 'image/jpeg' && bytes[0] === 0xff && bytes[1] === 0xd8
+    const webp = file.type === 'image/webp' && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF'
+      && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP'
+    if (!png && !jpeg && !webp) return { error: 'The logo file is invalid.' }
+    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/jpeg' ? 'jpg' : 'webp'
+    logoPath = `${owner.id}/${crypto.randomUUID()}.${ext}`
+    const { error: uploadError } = await supabase.storage.from('booking-logos')
+      .upload(logoPath, bytes, { contentType: file.type, upsert: false })
+    if (uploadError) return { error: 'Could not upload the logo.' }
+  }
+  const { error } = await supabase.from('booking_pages').update({
+    accent_color: color,
+    ...(logoPath ? { logo_path: logoPath } : {}),
+  }).eq('id', page.id).eq('user_id', owner.id)
+  if (error) return { error: 'Could not save branding.' }
+  revalidatePath('/my-page')
+  return { success: true }
+}
 
 function getSupabase() {
   return createClient(
@@ -48,7 +103,7 @@ export async function saveBookingPage(formData: FormData) {
   //    booking_pages.user_id is a UUID foreign key to users.id.
   const { data: user, error: userError } = await supabase
     .from('users')
-    .select('id, plan')
+    .select('id')
     .eq('clerk_user_id', clerkUserId)
     .single()
 
@@ -56,7 +111,7 @@ export async function saveBookingPage(formData: FormData) {
     return { error: 'User account not found. Make sure your Clerk webhook has synced.' }
   }
 
-  if (!isProPlan(user.plan)) {
+  {
     const { count, error: countError } = await supabase
       .from('booking_pages')
       .select('id', { count: 'exact', head: true })
@@ -66,9 +121,9 @@ export async function saveBookingPage(formData: FormData) {
       return { error: 'Unable to check your booking page limit. Please try again.' }
     }
 
-    if ((count ?? 0) >= FREE_BOOKING_PAGE_LIMIT) {
+    if ((count ?? 0) >= BOOKING_PAGE_LIMIT) {
       return {
-        error: 'Free plans include one booking page. Upgrade to Pro to create another page.',
+        error: 'Each Slotly account includes one booking page.',
       }
     }
   }
@@ -195,6 +250,8 @@ export async function saveAvailability(formData: FormData) {
         is_active: day.is_active,
         start_time: day.start_time,
         end_time: day.end_time,
+        break_start: day.break_start || null,
+        break_end: day.break_end || null,
       })),
       { onConflict: 'booking_page_id,day_of_week' }
     )

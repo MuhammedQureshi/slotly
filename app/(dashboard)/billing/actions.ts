@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 
 import { supabaseAdmin } from '@/lib/supabase'
 import { getAppUrl, getStripe } from '@/lib/stripe'
+import { chooseProSubscription } from '@/lib/subscription-entitlements'
 
 export type BillingActionState = { error: string } | null
 
@@ -77,23 +78,9 @@ export async function startCheckout(
         status: 'all',
         limit: 100,
       })
-      const existingSubscription = subscriptions.data.find((subscription) =>
-        ['active', 'trialing', 'past_due', 'unpaid'].includes(subscription.status)
-      )
+      const existingSubscription = chooseProSubscription(subscriptions.data, priceId).active
 
       if (existingSubscription) {
-        const { error: adoptionError } = await supabaseAdmin
-          .from('users')
-          .update({
-            plan: 'pro',
-            stripe_subscription_id: existingSubscription.id,
-          })
-          .eq('id', user.id)
-
-        if (adoptionError) {
-          throw new Error('Unable to restore the existing subscription')
-        }
-
         checkoutUrl = await createPortalUrl(user.stripe_customer_id)
       }
     }

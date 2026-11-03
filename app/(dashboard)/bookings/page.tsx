@@ -1,6 +1,8 @@
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import BookingsTable from './BookingsTable'
+import ManualBookingForm from './ManualBookingForm'
+import { getEntitlements } from '@/lib/plans'
 
 export default async function Bookings() {
   const { userId: clerkUserId } = await auth()
@@ -13,7 +15,7 @@ export default async function Bookings() {
 
   const { data: user } = await supabase
     .from('users')
-    .select('id')
+    .select('id, plan')
     .eq('clerk_user_id', clerkUserId)
     .single()
 
@@ -31,6 +33,8 @@ export default async function Bookings() {
   }
 
   const bookingPageIds = bookingPages.map(page => page.id)
+  const { data: services } = await supabase.from('services').select('id, name')
+    .eq('booking_page_id', bookingPageIds[0]).order('sort_order')
 
   const { data: bookings } = await supabase
   .from('bookings')
@@ -38,14 +42,14 @@ export default async function Bookings() {
   .in('booking_page_id', bookingPageIds)
   .order('starts_at', { ascending: false })
 
-    if (!bookings || bookings.length === 0) {
-      return <div>No bookings found.</div>
-    }
-
-
   return (
     <div className="items-center justify-center">
-      <BookingsTable bookings={bookings} />
+      <div className="mb-4 flex gap-4 text-sm text-amber-800">
+        <a href="/api/export?kind=appointments" className="underline">Download appointments CSV</a>
+        <a href="/api/export?kind=customers" className="underline">Download customers CSV</a>
+      </div>
+      <ManualBookingForm services={services ?? []} />
+      <BookingsTable bookings={bookings ?? []} canWriteNotes={getEntitlements(user.plan).customerHistoryAndNotes} />
     </div>
   )
 }

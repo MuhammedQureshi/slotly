@@ -1,8 +1,9 @@
-import { fromZonedTime, toZonedTime } from 'date-fns-tz'
+import { formatInTimeZone, fromZonedTime, toZonedTime } from 'date-fns-tz'
 
 import { supabaseAdmin } from './supabase'
 
 type ExistingBooking = {
+  id: string
   starts_at: string
   ends_at: string
 }
@@ -72,7 +73,8 @@ export async function getAvailableSlots(
   duration: number,
   timezone: string,
   buffer: number,
-  minNoticeHours: number
+  minNoticeHours: number,
+  excludeBookingId?: string
 ): Promise<string[]> {
   assertValidInputs(date, duration, timezone, buffer, minNoticeHours)
 
@@ -83,7 +85,7 @@ export async function getAvailableSlots(
 
   const { data: rule, error: ruleError } = await supabaseAdmin
     .from('availability_rules')
-    .select('is_active, start_time, end_time')
+    .select('is_active, start_time, end_time, break_start, break_end')
     .eq('booking_page_id', bookingPageId)
     .eq('day_of_week', dayOfWeek)
     .maybeSingle()
@@ -126,7 +128,7 @@ export async function getAvailableSlots(
   // Include bookings that cross midnight into the target date.
   const { data: existingBookings, error: bookingsError } = await supabaseAdmin
     .from('bookings')
-    .select('starts_at, ends_at')
+    .select('id, starts_at, ends_at')
     .eq('booking_page_id', bookingPageId)
     .eq('status', 'confirmed')
     .lt('starts_at', dayEnd.toISOString())
@@ -136,7 +138,9 @@ export async function getAvailableSlots(
     throw new Error(`Could not load existing bookings: ${bookingsError.message}`)
   }
 
-  const bookings = (existingBookings ?? []) as ExistingBooking[]
+  const bookings = ((existingBookings ?? []) as ExistingBooking[]).filter(
+    (booking) => booking.id !== excludeBookingId
+  )
   const earliestAllowedStart = Date.now() + minNoticeHours * 60 * 60 * 1000
 
   return slots.filter((slot) => {
@@ -146,6 +150,11 @@ export async function getAvailableSlots(
       slotOverlapsBooking(slotStart, duration, booking)
     )
 
-    return isFarEnoughAhead && !overlapsBooking
+    const localMinutes = timeToMinutes(formatInTimeZone(slotStart, timezone, 'HH:mm'))
+    const overlapsBreak = rule.break_start && rule.break_end &&
+      localMinutes < timeToMinutes(rule.break_end) &&
+      localMinutes + duration > timeToMinutes(rule.break_start)
+
+    return isFarEnoughAhead && !overlapsBooking && !overlapsBreak
   })
 }

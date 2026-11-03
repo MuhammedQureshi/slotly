@@ -1,8 +1,8 @@
 import type Stripe from 'stripe'
 
-import { activateProFromCheckout } from '@/lib/billing'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getStripe } from '@/lib/stripe'
+import { chooseProSubscription } from '@/lib/subscription-entitlements'
 
 export const runtime = 'nodejs'
 
@@ -10,35 +10,28 @@ function objectId(value: string | { id: string } | null) {
   return typeof value === 'string' ? value : value?.id ?? null
 }
 
-async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  const customerId = objectId(subscription.customer)
-
-  if (!customerId) {
-    throw new Error(`Subscription ${subscription.id} is missing its customer`)
-  }
+async function syncSubscription(customerId: string) {
 
   const subscriptions = await getStripe().subscriptions.list({
     customer: customerId,
     status: 'all',
     limit: 100,
   })
-  const replacement = subscriptions.data.find(
-    (candidate) =>
-      candidate.id !== subscription.id &&
-      ['active', 'trialing', 'past_due', 'unpaid'].includes(candidate.status)
+  const { active: current, unpaid } = chooseProSubscription(
+    subscriptions.data, process.env.STRIPE_PRO_PRICE_ID || ''
   )
 
   const { error } = await supabaseAdmin
     .from('users')
     .update({
-      plan: replacement ? 'pro' : 'free',
-      stripe_subscription_id: replacement?.id ?? null,
+      plan: current ? 'pro' : 'free',
+      stripe_subscription_id: current?.id ?? unpaid?.id ?? null,
+      ...(current ? { ever_pro: true } : {}),
     })
     .eq('stripe_customer_id', customerId)
-    .eq('stripe_subscription_id', subscription.id)
 
   if (error) {
-    throw new Error(`Unable to downgrade user: ${error.message}`)
+      throw new Error(`Unable to sync subscription: ${error.message}`)
   }
 }
 
@@ -78,10 +71,21 @@ export async function POST(request: Request) {
   try {
     switch (event.type) {
       case 'checkout.session.completed':
-        await activateProFromCheckout(event.data.object)
+        {
+          const session = event.data.object
+          const customerId = objectId(session.customer)
+          if (!customerId) throw new Error('Checkout session has no customer')
+          await syncSubscription(customerId)
+        }
         break
       case 'customer.subscription.deleted':
-        await handleSubscriptionDeleted(event.data.object)
+      case 'customer.subscription.updated':
+      case 'customer.subscription.created':
+        {
+          const customerId = objectId(event.data.object.customer)
+          if (!customerId) throw new Error('Subscription has no customer')
+          await syncSubscription(customerId)
+        }
         break
     }
 

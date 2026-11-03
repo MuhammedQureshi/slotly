@@ -7,6 +7,7 @@ type Props = {
   description?: string
   icon: LucideIcon
   locked?: boolean
+  lockedDescription?: string
 }
 
 export default function MetricCard({
@@ -15,6 +16,7 @@ export default function MetricCard({
   description,
   icon: Icon,
   locked = false,
+  lockedDescription = 'Upgrade to view this metric',
 }: Props) {
   return (
     <article className="relative min-h-38 overflow-hidden rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
@@ -28,7 +30,7 @@ export default function MetricCard({
               </span>
             </div>
             <p className="mt-5 text-3xl font-semibold tracking-tight text-stone-950">
-              £1,248.00
+              —
             </p>
             <p className="mt-2 text-sm text-stone-500">This month</p>
           </div>
@@ -37,7 +39,7 @@ export default function MetricCard({
               <LockKeyhole aria-hidden="true" className="size-4" />
             </span>
             <p className="mt-2 text-sm font-semibold text-stone-950">Pro feature</p>
-            <p className="mt-1 text-xs text-stone-600">Upgrade to view revenue</p>
+            <p className="mt-1 text-xs text-stone-600">{lockedDescription}</p>
           </div>
         </>
       ) : (
