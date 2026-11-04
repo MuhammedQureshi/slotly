@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import CancelClient from './CancelClient'
 import RescheduleClient from './RescheduleClient'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { isOutsideChangeCutoff } from '@/lib/booking-rules'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
@@ -58,7 +59,7 @@ export default async function CancelPage({
   }
 
   const [pageResult, serviceResult] = await Promise.all([
-    supabaseAdmin.from('booking_pages').select('business_name, timezone').eq('id', booking.booking_page_id).single(),
+    supabaseAdmin.from('booking_pages').select('business_name, timezone, change_cutoff_hours, phone, email').eq('id', booking.booking_page_id).single(),
     supabaseAdmin.from('services').select('name').eq('id', booking.service_id).maybeSingle(),
   ])
 
@@ -70,6 +71,8 @@ export default async function CancelPage({
   const date = new Intl.DateTimeFormat('en-GB', { dateStyle: 'full', timeZone: timezone }).format(new Date(booking.starts_at))
   const time = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone, timeZoneName: 'short' }).format(new Date(booking.starts_at))
   const price = booking.price_pence ? new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(booking.price_pence / 100) : 'Free'
+  const canChange = booking.status === 'confirmed' && isOutsideChangeCutoff(
+    new Date(booking.starts_at).getTime(), new Date().getTime(), pageResult.data.change_cutoff_hours ?? 12)
 
   return (
     <main className="grid min-h-screen place-items-center bg-stone-50 px-4 py-12 sm:px-6">
@@ -83,9 +86,13 @@ export default async function CancelPage({
           <div><dt className="text-stone-500">Time</dt><dd className="mt-1 font-medium text-stone-950">{time}</dd></div>
           <div><dt className="text-stone-500">Price</dt><dd className="mt-1 font-medium text-stone-950">{price}</dd></div>
         </dl>
-        {booking.status === 'confirmed' && new Date(booking.starts_at) > new Date()
+        {canChange
           ? <><CancelClient token={token} /><RescheduleClient token={token} timezone={timezone} /></>
-          : <p className="mt-6 text-sm text-stone-600">This appointment can no longer be changed online.</p>}
+          : <div className="mt-6 space-y-2 text-sm text-stone-600">
+            <p>Online changes close {pageResult.data.change_cutoff_hours ?? 12} hours before your appointment. Please contact the shop if you need help.</p>
+            {pageResult.data.phone && <a className="block font-medium text-stone-900 underline" href={`tel:${pageResult.data.phone.replace(/\s/g, '')}`}>{pageResult.data.phone}</a>}
+            {pageResult.data.email && <a className="block font-medium text-stone-900 underline" href={`mailto:${pageResult.data.email}`}>{pageResult.data.email}</a>}
+          </div>}
       </CardContent></Card>
     </main>
   )

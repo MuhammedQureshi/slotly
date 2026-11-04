@@ -1,10 +1,13 @@
-import { Phone } from "lucide-react"
+import { Mail, Phone } from "lucide-react"
 import Image from 'next/image'
 
 import { supabaseAdmin } from "@/lib/supabase"
 import { getEntitlements } from '@/lib/plans'
 import { bookingAccent } from '@/lib/branding'
 import BookingPageFlow from "./BookingFlow"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 export default async function BookingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -37,6 +40,9 @@ export default async function BookingPage({ params }: { params: Promise<{ slug: 
 
   const { data: owner } = await supabaseAdmin.from('users').select('plan')
     .eq('id', data.user_id).maybeSingle()
+  const { data: weeklyHours } = await supabaseAdmin.from('availability_rules')
+    .select('day_of_week, is_active, start_time, end_time')
+    .eq('booking_page_id', data.id).order('day_of_week')
   const customBranding = getEntitlements(owner?.plan).customBranding
   const accent = bookingAccent(data.accent_color, customBranding)
   const logo = customBranding
@@ -71,15 +77,24 @@ export default async function BookingPage({ params }: { params: Promise<{ slug: 
               {data.phone}
             </a>
           )}
+          {data.email && <a href={`mailto:${data.email}`} className="mt-2 block text-sm text-slate-600 hover:underline">
+            <Mail aria-hidden="true" className="mr-1 inline size-4" />{data.email}</a>}
         </header>
 
         <section className="pt-8 sm:pt-10">
           <BookingPageFlow
-            services={data.services}
+            services={(data.services ?? []).filter((service: { is_active: boolean }) => service.is_active)}
             pageId={data.id}
             timezone={data.timezone ?? 'Europe/London'}
           />
         </section>
+        {weeklyHours && weeklyHours.length > 0 && <Card className="mt-8">
+          <CardHeader><CardTitle className="text-base">Opening hours</CardTitle></CardHeader>
+          <CardContent><dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">{weeklyHours.map((rule) => <div key={rule.day_of_week} className="flex justify-between gap-3">
+            <dt className="text-slate-600">{WEEKDAYS[rule.day_of_week]}</dt>
+            <dd className="font-medium">{rule.is_active ? `${rule.start_time.slice(0,5)}–${rule.end_time.slice(0,5)}` : 'Closed'}</dd>
+          </div>)}</dl></CardContent>
+        </Card>}
         {!customBranding && <footer className="mt-10 text-center text-xs text-slate-500">Powered by Slotly</footer>}
       </div>
     </main>

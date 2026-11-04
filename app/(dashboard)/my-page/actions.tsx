@@ -9,6 +9,7 @@ import { BOOKING_PAGE_LIMIT } from '@/lib/plans'
 import { getEntitlements } from '@/lib/plans'
 import { isAccessibleBookingAccent } from '@/lib/branding'
 import { z } from 'zod'
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
 
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/
 const availabilitySchema = z
@@ -238,7 +239,7 @@ export async function saveAvailability(formData: FormData) {
 
   const { data: bookingPage, error: bookingPageError } = await supabase
     .from('booking_pages')
-    .select('id')
+    .select('id, timezone')
     .eq('id', bookingPageId)
     .eq('user_id', user.id) // ownership check
     .single();
@@ -270,4 +271,171 @@ export async function saveAvailability(formData: FormData) {
   // Revalidate the path to ensure the new availability is reflected
   revalidatePath(`/my-page`);
 
+  const { data: upcoming } = await supabase.from('bookings')
+    .select('starts_at, ends_at').eq('booking_page_id', bookingPageId)
+    .eq('status', 'confirmed').gte('starts_at', new Date().toISOString())
+    .order('starts_at').limit(500)
+  const timezone = bookingPage.timezone || 'Europe/London'
+  const conflicts = (upcoming ?? []).filter((booking) => {
+    const start = new Date(booking.starts_at)
+    const end = new Date(booking.ends_at)
+    const day = new Date(`${formatInTimeZone(start, timezone, 'yyyy-MM-dd')}T12:00:00Z`).getUTCDay()
+    const rule = days.find((item) => item.day_of_week === day)
+    if (!rule || !rule.is_active) return true
+    const localStart = formatInTimeZone(start, timezone, 'HH:mm')
+    const localEnd = formatInTimeZone(end, timezone, 'HH:mm')
+    return localStart < rule.start_time || localEnd > rule.end_time ||
+      Boolean(rule.break_start && rule.break_end && localStart < rule.break_end && localEnd > rule.break_start)
+  }).length
+  return { success: true, conflicts }
+
+}
+
+function isCalendarDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const date = new Date(`${value}T00:00:00Z`)
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
+}
+
+async function getOwnedAvailabilityPage(pageId: string) {
+  const { userId } = await auth()
+  if (!userId || !z.string().uuid().safeParse(pageId).success) return null
+  const supabase = getSupabase()
+  const { data: user } = await supabase.from('users').select('id')
+    .eq('clerk_user_id', userId).maybeSingle()
+  if (!user) return null
+  const { data: page } = await supabase.from('booking_pages')
+    .select('id, slug, timezone').eq('id', pageId).eq('user_id', user.id).maybeSingle()
+  return page
+}
+
+function revalidateAvailability(slug: string) {
+  revalidatePath('/my-page')
+  revalidatePath(`/book/${slug}`)
+}
+
+export async function saveChangeCutoff(pageId: string, hours: number) {
+  const page = await getOwnedAvailabilityPage(pageId)
+  if (!page) return { error: 'Booking page not found.' }
+  if (!Number.isInteger(hours) || hours < 0 || hours > 168) {
+    return { error: 'Choose a cutoff from 0 to 168 hours.' }
+  }
+  const { error } = await getSupabase().from('booking_pages')
+    .update({ change_cutoff_hours: hours }).eq('id', page.id)
+  if (error) return { error: 'Could not save the change cutoff.' }
+  revalidateAvailability(page.slug)
+  return { success: true }
+}
+
+export async function saveShopDetails(pageId: string, formData: FormData) {
+  const page = await getOwnedAvailabilityPage(pageId)
+  if (!page) return { error: 'Booking page not found.' }
+  const details = z.object({
+    business_name: z.string().trim().min(1).max(100),
+    description: z.string().trim().max(200),
+    phone: z.string().trim().max(30),
+    email: z.union([z.literal(''), z.string().trim().email().max(254)]),
+  }).safeParse(Object.fromEntries(formData))
+  if (!details.success) return { error: 'Check your shop name and contact details.' }
+  const { error } = await getSupabase().from('booking_pages').update({
+    business_name: details.data.business_name,
+    description: details.data.description || null,
+    phone: details.data.phone || null,
+    email: details.data.email || null,
+  }).eq('id', page.id)
+  if (error) return { error: 'Could not save your shop details.' }
+  revalidateAvailability(page.slug)
+  return { success: true }
+}
+
+export async function saveBlockedDateRange(pageId: string, startDate: string, endDate: string, reason: string) {
+  const page = await getOwnedAvailabilityPage(pageId)
+  if (!page) return { error: 'Booking page not found.' }
+  if (!isCalendarDate(startDate) || !isCalendarDate(endDate) || startDate > endDate || reason.length > 200) {
+    return { error: 'Choose a valid date range and a reason under 200 characters.' }
+  }
+  const start = new Date(`${startDate}T12:00:00Z`)
+  const end = new Date(`${endDate}T12:00:00Z`)
+  const dayCount = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1
+  if (dayCount > 90) return { error: 'Block up to 90 days at a time.' }
+  const rows = Array.from({ length: dayCount }, (_, offset) => {
+    const date = new Date(start)
+    date.setUTCDate(date.getUTCDate() + offset)
+    return { booking_page_id: page.id, blocked_date: date.toISOString().slice(0, 10), reason: reason.trim() || null }
+  })
+  const { error } = await getSupabase().from('blocked_dates')
+    .upsert(rows, { onConflict: 'booking_page_id,blocked_date' })
+  if (error) return { error: 'Could not block these dates.' }
+  const timezone = page.timezone || 'Europe/London'
+  const afterEnd = new Date(end)
+  afterEnd.setUTCDate(afterEnd.getUTCDate() + 1)
+  const { count } = await getSupabase().from('bookings')
+    .select('id', { count: 'exact', head: true }).eq('booking_page_id', page.id)
+    .eq('status', 'confirmed')
+    .gte('starts_at', fromZonedTime(`${startDate}T00:00:00`, timezone).toISOString())
+    .lt('starts_at', fromZonedTime(`${afterEnd.toISOString().slice(0, 10)}T00:00:00`, timezone).toISOString())
+  revalidateAvailability(page.slug)
+  return { success: true, conflicts: count ?? 0 }
+}
+
+export async function removeBlockedDate(pageId: string, date: string) {
+  const page = await getOwnedAvailabilityPage(pageId)
+  if (!page || !isCalendarDate(date)) return { error: 'Blocked date not found.' }
+  const { error } = await getSupabase().from('blocked_dates').delete()
+    .eq('booking_page_id', page.id).eq('blocked_date', date)
+  if (error) return { error: 'Could not remove this blocked date.' }
+  revalidateAvailability(page.slug)
+  return { success: true }
+}
+
+const overrideSchema = z.object({
+  date: z.string().refine(isCalendarDate),
+  is_active: z.boolean(),
+  start_time: z.string().regex(timePattern),
+  end_time: z.string().regex(timePattern),
+  break_start: z.string().regex(timePattern).nullable(),
+  break_end: z.string().regex(timePattern).nullable(),
+}).refine((value) => !value.is_active || value.start_time < value.end_time, {
+  message: 'Closing time must be after opening time.',
+}).refine((value) => (!value.break_start && !value.break_end) ||
+  (!!value.break_start && !!value.break_end && value.break_start < value.break_end &&
+    value.break_start >= value.start_time && value.break_end <= value.end_time), {
+  message: 'Break must fall within opening hours.',
+})
+
+export async function saveAvailabilityOverride(pageId: string, input: z.infer<typeof overrideSchema>) {
+  const page = await getOwnedAvailabilityPage(pageId)
+  if (!page) return { error: 'Booking page not found.' }
+  const parsed = overrideSchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message || 'Invalid hours.' }
+  const { error } = await getSupabase().from('availability_overrides')
+    .upsert({ booking_page_id: page.id, ...parsed.data }, { onConflict: 'booking_page_id,date' })
+  if (error) return { error: 'Could not save these hours.' }
+  const timezone = page.timezone || 'Europe/London'
+  const next = new Date(`${parsed.data.date}T12:00:00Z`)
+  next.setUTCDate(next.getUTCDate() + 1)
+  const { data: bookings } = await getSupabase().from('bookings')
+    .select('starts_at, ends_at').eq('booking_page_id', page.id).eq('status', 'confirmed')
+    .gte('starts_at', fromZonedTime(`${parsed.data.date}T00:00:00`, timezone).toISOString())
+    .lt('starts_at', fromZonedTime(`${next.toISOString().slice(0, 10)}T00:00:00`, timezone).toISOString())
+  const conflicts = (bookings ?? []).filter((booking) => {
+    if (!parsed.data.is_active) return true
+    const localStart = formatInTimeZone(new Date(booking.starts_at), timezone, 'HH:mm')
+    const localEnd = formatInTimeZone(new Date(booking.ends_at), timezone, 'HH:mm')
+    return localStart < parsed.data.start_time || localEnd > parsed.data.end_time ||
+      Boolean(parsed.data.break_start && parsed.data.break_end &&
+        localStart < parsed.data.break_end && localEnd > parsed.data.break_start)
+  }).length
+  revalidateAvailability(page.slug)
+  return { success: true, conflicts }
+}
+
+export async function removeAvailabilityOverride(pageId: string, date: string) {
+  const page = await getOwnedAvailabilityPage(pageId)
+  if (!page || !isCalendarDate(date)) return { error: 'Date not found.' }
+  const { error } = await getSupabase().from('availability_overrides').delete()
+    .eq('booking_page_id', page.id).eq('date', date)
+  if (error) return { error: 'Could not remove these hours.' }
+  revalidateAvailability(page.slug)
+  return { success: true }
 }

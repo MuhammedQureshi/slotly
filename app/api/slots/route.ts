@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
   const { data: bookingPage, error: pageError } = await supabaseAdmin
     .from('booking_pages')
-    .select('id, user_id, timezone, buffer_minutes, min_notice_hours')
+    .select('id, user_id, timezone, buffer_minutes, min_notice_hours, max_days_ahead')
     .eq('id', pageId)
     .eq('is_published', true)
     .eq('is_active', true)
@@ -96,6 +96,7 @@ export async function GET(request: Request) {
     .select('id')
     .eq('booking_page_id', pageId)
     .eq('duration_minutes', duration)
+    .eq('is_active', true)
     .limit(1)
     .maybeSingle()
 
@@ -115,7 +116,9 @@ export async function GET(request: Request) {
       duration,
       bookingPage.timezone ?? 'Europe/London',
       bookingPage.buffer_minutes ?? 0,
-      bookingPage.min_notice_hours ?? 0
+      bookingPage.min_notice_hours ?? 0,
+      undefined,
+      bookingPage.max_days_ahead ?? undefined
     )
 
     return Response.json(

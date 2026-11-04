@@ -16,6 +16,7 @@ type Service = { id: string; name: string }
 export default function ManualBookingForm({ services, timezone }: { services: Service[]; timezone: string }) {
   const [serviceId, setServiceId] = useState('')
   const [resetKey, setResetKey] = useState(0)
+  const [requestKey, setRequestKey] = useState(() => crypto.randomUUID())
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
@@ -41,12 +42,14 @@ export default function ManualBookingForm({ services, timezone }: { services: Se
             setMessage('Appointment added.')
             setServiceId('')
             setResetKey((current) => current + 1)
+            setRequestKey(crypto.randomUUID())
             form.reset()
             router.refresh()
           }
         } catch { setMessage('Unable to save. Please try again.') }
         finally { setSaving(false) }
       }} className="grid gap-5">
+        <input type="hidden" name="request_key" value={requestKey} />
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="manual-service">Service</Label>

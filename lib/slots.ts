@@ -1,6 +1,7 @@
 import { formatInTimeZone, fromZonedTime, toZonedTime } from 'date-fns-tz'
 
 import { supabaseAdmin } from './supabase'
+import { latestBookableDate, overlapsWithBuffer } from './booking-rules'
 
 type ExistingBooking = {
   id: string
@@ -58,13 +59,12 @@ function nextCalendarDate(date: string): string {
 function slotOverlapsBooking(
   slotStart: Date,
   duration: number,
-  booking: ExistingBooking
+  booking: ExistingBooking,
+  buffer: number
 ): boolean {
   const slotEnd = new Date(slotStart.getTime() + duration * 60_000)
-  const bookingStart = new Date(booking.starts_at)
-  const bookingEnd = new Date(booking.ends_at)
-
-  return slotStart < bookingEnd && slotEnd > bookingStart
+  return overlapsWithBuffer(slotStart.getTime(), slotEnd.getTime(),
+    new Date(booking.starts_at).getTime(), new Date(booking.ends_at).getTime(), buffer)
 }
 
 export async function getAvailableSlots(
@@ -74,7 +74,8 @@ export async function getAvailableSlots(
   timezone: string,
   buffer: number,
   minNoticeHours: number,
-  excludeBookingId?: string
+  excludeBookingId?: string,
+  maxDaysAhead?: number
 ): Promise<string[]> {
   assertValidInputs(date, duration, timezone, buffer, minNoticeHours)
 
@@ -83,17 +84,34 @@ export async function getAvailableSlots(
   const targetInstant = fromZonedTime(`${date}T12:00:00`, timezone)
   const dayOfWeek = toZonedTime(targetInstant, timezone).getDay()
 
-  const { data: rule, error: ruleError } = await supabaseAdmin
-    .from('availability_rules')
+  if (maxDaysAhead !== undefined && maxDaysAhead >= 0) {
+    const localToday = formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd')
+    if (date > latestBookableDate(localToday, maxDaysAhead)) return []
+  }
+
+  const { data: override, error: overrideError } = await supabaseAdmin
+    .from('availability_overrides')
     .select('is_active, start_time, end_time, break_start, break_end')
     .eq('booking_page_id', bookingPageId)
-    .eq('day_of_week', dayOfWeek)
+    .eq('date', date)
     .maybeSingle()
+
+  if (overrideError) throw new Error(`Could not load availability: ${overrideError.message}`)
+
+  const { data: weeklyRule, error: ruleError } = override
+    ? { data: null, error: null }
+    : await supabaseAdmin
+        .from('availability_rules')
+        .select('is_active, start_time, end_time, break_start, break_end')
+        .eq('booking_page_id', bookingPageId)
+        .eq('day_of_week', dayOfWeek)
+        .maybeSingle()
 
   if (ruleError) {
     throw new Error(`Could not load availability: ${ruleError.message}`)
   }
 
+  const rule = override ?? weeklyRule
   if (!rule || !rule.is_active) return []
 
   const { data: blocked, error: blockedError } = await supabaseAdmin
@@ -130,7 +148,7 @@ export async function getAvailableSlots(
     .from('bookings')
     .select('id, starts_at, ends_at')
     .eq('booking_page_id', bookingPageId)
-    .eq('status', 'confirmed')
+    .in('status', ['confirmed', 'completed', 'no_show'])
     .lt('starts_at', dayEnd.toISOString())
     .gt('ends_at', dayStart.toISOString())
 
@@ -147,7 +165,7 @@ export async function getAvailableSlots(
     const slotStart = new Date(slot)
     const isFarEnoughAhead = slotStart.getTime() >= earliestAllowedStart
     const overlapsBooking = bookings.some((booking) =>
-      slotOverlapsBooking(slotStart, duration, booking)
+      slotOverlapsBooking(slotStart, duration, booking, buffer)
     )
 
     const localMinutes = timeToMinutes(formatInTimeZone(slotStart, timezone, 'HH:mm'))

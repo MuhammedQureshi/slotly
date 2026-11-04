@@ -66,6 +66,8 @@ export default function BookingForm({
   onSuccess,
 }: Props) {
   const [serverError, setServerError] = useState<string>()
+  const [requestKey] = useState(() => crypto.randomUUID())
+  const [website, setWebsite] = useState('')
   const {
     register,
     handleSubmit,
@@ -107,6 +109,8 @@ export default function BookingForm({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          request_key: requestKey,
+          website,
           booking_page_id: bookingPageId,
           service_id: service.id,
           starts_at: startsAt,
@@ -195,6 +199,8 @@ export default function BookingForm({
               {price}
             </span>
           </div>
+          {service.price_pence !== null && service.price_pence > 0 &&
+            <p className="mt-3 text-xs leading-5 text-slate-600">Payment is made directly to the barber at your appointment. Slotly does not collect it.</p>}
         </CardContent></Card>
 
         <Card><CardContent>
@@ -203,6 +209,11 @@ export default function BookingForm({
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-5"
         >
+          <div className="absolute -left-[10000px]" aria-hidden="true">
+            <Label htmlFor="booking-website">Leave this field empty</Label>
+            <Input id="booking-website" name="website" autoComplete="off" tabIndex={-1}
+              value={website} onChange={(event) => setWebsite(event.target.value)} />
+          </div>
           <div className="space-y-5">
             <div>
               <Label

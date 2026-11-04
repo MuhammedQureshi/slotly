@@ -1,4 +1,7 @@
 import AvailabilityEditor, { type DayRule } from '@/components/dashboard/AvailabilityEditor'
+import AvailabilityExceptions from '@/components/dashboard/AvailabilityExceptions'
+import ShopDetailsForm from '@/components/dashboard/ShopDetailsForm'
+import CopyBookingLink from '@/components/dashboard/CopyBookingLink'
 import MyPageForm from '@/components/dashboard/MyPageForm'
 import PagePreview from '@/components/dashboard/PagePreview'
 import { auth } from '@clerk/nextjs/server'
@@ -58,7 +61,7 @@ export default async function Mypage({ searchParams }: { searchParams: Promise<{
     )
   }
 
-  const [{ data: services }, { data: availabilityRules }] = await Promise.all([
+  const [{ data: services }, { data: availabilityRules }, { data: blockedDates }, { data: overrides }] = await Promise.all([
     supabase
       .from('services')
       .select('*')
@@ -69,6 +72,12 @@ export default async function Mypage({ searchParams }: { searchParams: Promise<{
       .select('day_of_week, is_active, start_time, end_time, break_start, break_end')
       .eq('booking_page_id', bookingPage.id)
       .order('day_of_week'),
+    supabase.from('blocked_dates').select('blocked_date, reason')
+      .eq('booking_page_id', bookingPage.id).gte('blocked_date', new Date().toISOString().slice(0, 10))
+      .order('blocked_date').limit(500),
+    supabase.from('availability_overrides').select('date, is_active, start_time, end_time, break_start, break_end')
+      .eq('booking_page_id', bookingPage.id).gte('date', new Date().toISOString().slice(0, 10))
+      .order('date').limit(100),
   ])
 
 
@@ -100,6 +109,7 @@ export default async function Mypage({ searchParams }: { searchParams: Promise<{
           <p className="mt-2 max-w-xl text-sm leading-6 text-stone-600">Make your booking page your own and set the hours customers can book.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <CopyBookingLink slug={bookingPage.slug} />
           <a href={`/book/${bookingPage.slug}`} target="_blank" rel="noreferrer" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
             View live page <ExternalLink aria-hidden="true" className="size-4" />
           </a>
@@ -114,7 +124,10 @@ export default async function Mypage({ searchParams }: { searchParams: Promise<{
           <TabsTrigger value="appearance" className="px-4">Appearance</TabsTrigger>
           <TabsTrigger value="availability" className="px-4">Availability</TabsTrigger>
         </TabsList>
-        <TabsContent value="appearance">
+        <TabsContent value="appearance" className="space-y-6">
+          <ShopDetailsForm pageId={bookingPage.id} name={bookingPage.business_name}
+            description={bookingPage.description ?? ''} phone={bookingPage.phone ?? ''}
+            email={bookingPage.email ?? ''} />
           {entitlements.customBranding
             ? <BrandingForm initialColor={accent} initialLogoUrl={logoUrl} preview={preview} />
             : <div className="grid items-start gap-6 xl:grid-cols-[minmax(340px,0.8fr)_minmax(0,1.2fr)]">
@@ -136,8 +149,11 @@ export default async function Mypage({ searchParams }: { searchParams: Promise<{
               </div>
             </div>}
         </TabsContent>
-        <TabsContent value="availability" className="max-w-3xl">
+        <TabsContent value="availability" className="max-w-3xl space-y-6">
           <AvailabilityEditor bookingPageId={bookingPage.id} initialRules={(availabilityRules ?? []) as DayRule[]} />
+          <AvailabilityExceptions pageId={bookingPage.id} timezone={bookingPage.timezone || 'Europe/London'}
+            initialCutoff={bookingPage.change_cutoff_hours ?? 12} blockedDates={blockedDates ?? []}
+            overrides={overrides ?? []} />
         </TabsContent>
       </Tabs>
     </div>

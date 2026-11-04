@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
+import { z } from 'zod'
 import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase'
 import { ArrowLeft, CalendarDays } from 'lucide-react'
@@ -9,7 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default async function CustomerHistory({ params }: { params: Promise<{ email: string }> }) {
   const { userId } = await auth()
   if (!userId) return <p>Please sign in.</p>
-  const email = decodeURIComponent((await params).email)
+  const email = (await params).email
+  if (!z.string().email().safeParse(email).success) return <p>Customer not found.</p>
   const { data: user } = await supabaseAdmin.from('users').select('id, plan, ever_pro').eq('clerk_user_id', userId).maybeSingle()
   if (!user) return <p>Account not found.</p>
   if (user.plan !== 'pro' && !user.ever_pro) return <p>Customer appointment history is available on Pro.</p>
@@ -18,7 +20,7 @@ export default async function CustomerHistory({ params }: { params: Promise<{ em
   if (!ids.length) return <p>No appointments.</p>
   const { data, error } = await supabaseAdmin.from('bookings')
     .select('id, customer_name, customer_email, starts_at, status, private_notes, service:service_id(name)')
-    .in('booking_page_id', ids).ilike('customer_email', email)
+    .in('booking_page_id', ids).ilike('customer_email', email.replace(/[\\%_]/g, '\\$&'))
     .order('starts_at', { ascending: false }).limit(500)
   if (error || !data?.length) return <p>Customer not found.</p>
   return <div className="space-y-6">

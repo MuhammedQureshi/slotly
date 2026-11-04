@@ -11,6 +11,17 @@ The follow-up `supabase/migrations/20261103_reminder_reschedules.sql` was also
 applied on 2026-11-03. Its column, trigger and claim function were verified,
 with all twelve bookings preserved. It makes moved appointments use the move
 time for the 24-hour reminder rule.
+On 2026-11-04, `20261104_free_100_bookings.sql` raised the Free allowance to
+100, and `20261104_booking_reliability.sql` plus
+`20261104_customer_cancellation_cutoff.sql` added the schedule guard, one-off
+hours, request idempotency, customer change cutoff, basic rate limit, and
+reminder attempt records. Each migration was dry-run with `ROLLBACK` before
+application. Verification found the 12 existing bookings intact and no
+anonymous execute access to the new booking RPC. Rollback-only synthetic
+tests accepted booking 100, refused booking 101, restored capacity after a
+cancellation, returned the same booking for a replay, enforced buffer and
+blocked dates, preserved a failed reschedule, and enforced the customer cutoff.
+The synthetic appointments were rolled back, leaving zero test rows.
 
 ## Before the migration
 
@@ -68,3 +79,6 @@ without an error before deploying the corresponding app commit.
 9. Run `npm run lint`, `npm run test:plans`, and `npm run build`.
 
 No customer payments or Stripe Connect are part of this implementation.
+
+No Slotly support address or other established support channel is present in
+the repository. A help link needs a verified destination before it can be added.

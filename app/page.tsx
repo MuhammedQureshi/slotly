@@ -43,6 +43,7 @@ export default function Home() {
           Slot<span className="text-amber-400">ly</span>
         </Link>
         <div className="flex items-center gap-4">
+          <Link href="/pricing" className="text-sm font-medium text-stone-300 transition hover:text-white">Pricing</Link>
           <Link
             href="/sign-in"
             className="hidden text-sm font-medium text-stone-300 transition hover:text-white sm:block"

@@ -32,8 +32,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 
-import { cancelBooking, savePrivateNotes } from './actions'
-import { rescheduleBookingByToken } from '@/app/cancel/[token]/actions'
+import { cancelBooking, markBookingOutcome, rescheduleBookingAsOwner, savePrivateNotes } from './actions'
 import type { Booking } from './BookingsTable'
 
 type Props = {
@@ -43,24 +42,16 @@ type Props = {
   timezone: string
 }
 
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
-
-const timeFormatter = new Intl.DateTimeFormat('en-GB', {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-})
-
-function formatDate(date: string) {
-  return dateFormatter.format(new Date(date))
+function formatDate(date: string, timezone: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: timezone,
+  }).format(new Date(date))
 }
 
-function formatTime(date: string) {
-  return timeFormatter.format(new Date(date))
+function formatTime(date: string, timezone: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone,
+  }).format(new Date(date))
 }
 
 function formatPrice(pricePence: number | null) {
@@ -74,6 +65,10 @@ function getStatusClassName(status: string) {
       return 'border-emerald-200 bg-emerald-50 text-emerald-700'
     case 'cancelled':
       return 'border-red-200 bg-red-50 text-red-700'
+    case 'completed':
+      return 'border-blue-200 bg-blue-50 text-blue-700'
+    case 'no_show':
+      return 'border-amber-200 bg-amber-50 text-amber-700'
     case 'pending':
       return 'border-amber-200 bg-amber-50 text-amber-700'
     default:
@@ -88,7 +83,7 @@ function StatusBadge({ status }: { status: string }) {
       className={`capitalize ${getStatusClassName(status)}`}
     >
       <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-      {status}
+      {status.replaceAll('_', ' ')}
     </Badge>
   )
 }
@@ -100,6 +95,7 @@ export default function BookingSheet({ booking, onClose, canWriteNotes, timezone
   const [error, setError] = useState<string>()
   const [noteMessage, setNoteMessage] = useState('')
   const [rescheduleMessage, setRescheduleMessage] = useState('')
+  const [outcomeMessage, setOutcomeMessage] = useState('')
 
   const closeSheet = () => {
     setConfirmOpen(false)
@@ -168,14 +164,14 @@ export default function BookingSheet({ booking, onClose, canWriteNotes, timezone
                     aria-hidden="true"
                     className="size-4 text-amber-700"
                   />
-                  {formatDate(booking.starts_at)}
+                  {formatDate(booking.starts_at, timezone)}
                 </div>
                 <div className="mt-2 flex items-center gap-2 text-sm text-slate-700">
                   <Clock3
                     aria-hidden="true"
                     className="size-4 text-amber-700"
                   />
-                  {formatTime(booking.starts_at)}–{formatTime(booking.ends_at)}
+                  {formatTime(booking.starts_at, timezone)}–{formatTime(booking.ends_at, timezone)}
                 </div>
               </div>
 
@@ -281,15 +277,31 @@ export default function BookingSheet({ booking, onClose, canWriteNotes, timezone
                     event.preventDefault()
                     const value = String(new FormData(event.currentTarget).get('starts_at') ?? '')
                     if (!value) { setRescheduleMessage('Choose a date and time.'); return }
-                    const result = await rescheduleBookingByToken(booking.cancel_token, value)
+                    const result = await rescheduleBookingAsOwner(booking.id, value)
                     setRescheduleMessage(result.error ?? 'Appointment moved.')
-                    if (result.success) router.refresh()
+                    if (result.success) { closeSheet(); router.refresh() }
                   }} className="mb-5">
                     <p className="mb-3 text-sm font-medium">Move appointment</p>
                     <DateTimeField name="starts_at" timezone={timezone} />
                     <Button type="submit" className="mt-3">Save new time</Button>
                     {rescheduleMessage && <p role="status" className="mt-2 text-sm text-muted-foreground">{rescheduleMessage}</p>}
                   </form>
+                  {new Date(booking.starts_at) <= new Date() && <div className="mb-5 space-y-2">
+                    <p className="text-sm font-medium">Appointment outcome</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" onClick={async () => {
+                        const result = await markBookingOutcome(booking.id, 'completed')
+                        setOutcomeMessage(result.error ?? 'Marked completed.')
+                        if (result.success) { closeSheet(); router.refresh() }
+                      }}>Mark completed</Button>
+                      <Button variant="outline" onClick={async () => {
+                        const result = await markBookingOutcome(booking.id, 'no_show')
+                        setOutcomeMessage(result.error ?? 'Marked no-show.')
+                        if (result.success) { closeSheet(); router.refresh() }
+                      }}>Mark no-show</Button>
+                    </div>
+                    {outcomeMessage && <p role="status" className="text-sm text-muted-foreground">{outcomeMessage}</p>}
+                  </div>}
                   <Button
                     variant="destructive"
                     className="h-10 w-full"

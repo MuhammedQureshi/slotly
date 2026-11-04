@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:slots": "tsx --env-file=.env.local scripts/test-slots.ts",
-    "test:plans": "node --import tsx --test scripts/plans.test.ts scripts/subscriptions.test.ts scripts/branding.test.ts"
+    "test:plans": "node --import tsx --test scripts/plans.test.ts scripts/subscriptions.test.ts scripts/branding.test.ts scripts/booking-rules.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

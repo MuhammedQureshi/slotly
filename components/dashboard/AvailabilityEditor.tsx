@@ -105,7 +105,9 @@ export default function AvailabilityEditor({
 
       toast({
         title: 'Availability saved',
-        description: 'Your booking hours are now up to date.',
+        description: result?.conflicts
+          ? `${result.conflicts} existing appointment${result.conflicts === 1 ? '' : 's'} conflict with the new hours and remain booked.`
+          : 'Your booking hours are now up to date.',
       })
     } catch {
       toast({

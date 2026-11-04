@@ -130,14 +130,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           value={metrics.upcomingToday}
           description="Confirmed appointments today"
           icon={CalendarCheck2}
-          locked={!isPro}
         />
         <MetricCard
           label="Total customers"
           value={metrics.totalCustomers}
           description="Unique customer email addresses"
           icon={UsersRound}
-          locked={!isPro}
         />
         <RevenueMetricCard
           value={

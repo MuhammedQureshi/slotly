@@ -1,11 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { formatInTimeZone } from 'date-fns-tz'
 import { CalendarDays, Clock3, Eye } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
   TableBody,
@@ -31,24 +34,16 @@ export type Booking = {
   service: { name: string } | null
 }
 
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
-
-const timeFormatter = new Intl.DateTimeFormat('en-GB', {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-})
-
-function formatDate(date: string) {
-  return dateFormatter.format(new Date(date))
+function formatDate(date: string, timezone: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: timezone,
+  }).format(new Date(date))
 }
 
-function formatTime(date: string) {
-  return timeFormatter.format(new Date(date))
+function formatTime(date: string, timezone: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone,
+  }).format(new Date(date))
 }
 
 function getStatusClassName(status: string) {
@@ -57,6 +52,10 @@ function getStatusClassName(status: string) {
       return 'border-emerald-200 bg-emerald-50 text-emerald-700'
     case 'cancelled':
       return 'border-red-200 bg-red-50 text-red-700'
+    case 'completed':
+      return 'border-blue-200 bg-blue-50 text-blue-700'
+    case 'no_show':
+      return 'border-amber-200 bg-amber-50 text-amber-700'
     case 'pending':
       return 'border-amber-200 bg-amber-50 text-amber-700'
     default:
@@ -71,7 +70,7 @@ function StatusBadge({ status }: { status: string }) {
       className={`capitalize ${getStatusClassName(status)}`}
     >
       <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-      {status}
+      {status.replaceAll('_', ' ')}
     </Badge>
   )
 }
@@ -86,6 +85,19 @@ export default function BookingsTable({
   timezone: string
 }) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+  const [view, setView] = useState<'all' | 'day' | 'week'>('all')
+  const [selectedDate, setSelectedDate] = useState(() => formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd'))
+  const day = new Date(`${selectedDate}T12:00:00Z`)
+  const weekStart = new Date(day)
+  weekStart.setUTCDate(day.getUTCDate() - (day.getUTCDay() + 6) % 7)
+  const weekEnd = new Date(weekStart)
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 7)
+  const visibleBookings = bookings.filter((booking) => {
+    if (view === 'all') return true
+    const localDate = formatInTimeZone(new Date(booking.starts_at), timezone, 'yyyy-MM-dd')
+    return view === 'day' ? localDate === selectedDate :
+      localDate >= weekStart.toISOString().slice(0, 10) && localDate < weekEnd.toISOString().slice(0, 10)
+  })
 
   return (
     <>
@@ -104,11 +116,24 @@ export default function BookingsTable({
             </p>
           </div>
           <Badge variant="secondary">
-            {bookings.length} {bookings.length === 1 ? 'booking' : 'bookings'}
+            {visibleBookings.length} {visibleBookings.length === 1 ? 'booking' : 'bookings'}
           </Badge>
         </div>
 
-        <Card className="hidden py-0 md:block">
+        <div className="mb-4 flex flex-wrap items-end gap-3">
+          <Tabs value={view} onValueChange={(value) => setView(value as 'all' | 'day' | 'week')}>
+            <TabsList aria-label="Calendar view">
+              <TabsTrigger value="day">Day</TabsTrigger>
+              <TabsTrigger value="week">Week</TabsTrigger>
+              <TabsTrigger value="all">All</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          {view !== 'all' && <div className="w-48"><DatePicker label="View date" value={selectedDate} onValueChange={setSelectedDate} timezone={timezone} /></div>}
+        </div>
+
+        {visibleBookings.length === 0 && <Card className="mb-4"><CardContent className="text-sm text-muted-foreground">No appointments in this view.</CardContent></Card>}
+
+        {visibleBookings.length > 0 && <Card className="hidden py-0 md:block">
           <Table>
             <TableHeader className="bg-slate-50/80">
               <TableRow className="border-slate-200 hover:bg-transparent">
@@ -130,7 +155,7 @@ export default function BookingsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {bookings.map((booking) => (
+              {visibleBookings.map((booking) => (
                 <TableRow
                   key={booking.id}
                   className="border-slate-100 hover:bg-slate-50/70"
@@ -150,10 +175,10 @@ export default function BookingsTable({
                   </TableCell>
                   <TableCell className="px-4 py-4">
                     <div className="font-medium text-slate-800">
-                      {formatDate(booking.starts_at)}
+                      {formatDate(booking.starts_at, timezone)}
                     </div>
                     <div className="mt-1 text-sm text-slate-500">
-                      {formatTime(booking.starts_at)}–{formatTime(booking.ends_at)}
+                      {formatTime(booking.starts_at, timezone)}–{formatTime(booking.ends_at, timezone)}
                     </div>
                   </TableCell>
                   <TableCell className="px-4 py-4">
@@ -174,10 +199,10 @@ export default function BookingsTable({
               ))}
             </TableBody>
           </Table>
-        </Card>
+        </Card>}
 
         <div className="space-y-3 md:hidden">
-          {bookings.map((booking) => (
+          {visibleBookings.map((booking) => (
             <Card
               key={booking.id}
             >
@@ -200,14 +225,14 @@ export default function BookingsTable({
                     aria-hidden="true"
                     className="size-4 shrink-0 text-slate-400"
                   />
-                  <span>{formatDate(booking.starts_at)}</span>
+                  <span>{formatDate(booking.starts_at, timezone)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-700">
                   <Clock3
                     aria-hidden="true"
                     className="size-4 shrink-0 text-slate-400"
                   />
-                  <span>{formatTime(booking.starts_at)}</span>
+                  <span>{formatTime(booking.starts_at, timezone)}</span>
                 </div>
               </div>
 
