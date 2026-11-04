@@ -2,10 +2,10 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { FREE_MONTHLY_BOOKING_LIMIT, getBookingMonthBoundaries, getEntitlements } from '../lib/plans'
 
-test('Free has one calendar and a 20-booking allowance; Pro has no commercial limit', () => {
-  assert.equal(FREE_MONTHLY_BOOKING_LIMIT, 20)
+test('Free has one calendar and a 100-booking allowance; Pro has no commercial limit', () => {
+  assert.equal(FREE_MONTHLY_BOOKING_LIMIT, 100)
   assert.equal(getEntitlements('free').calendars, 1)
-  assert.equal(getEntitlements('free').monthlyBookings, 20)
+  assert.equal(getEntitlements('free').monthlyBookings, 100)
   assert.equal(getEntitlements('pro').calendars, 1)
   assert.equal(getEntitlements('pro').monthlyBookings, null)
   assert.equal(getEntitlements('free').reminders, false)

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/card'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getStripe } from '@/lib/stripe'
+import { FREE_MONTHLY_BOOKING_LIMIT } from '@/lib/plans'
 
 import { BillingActionForm } from './BillingActionForm'
 
@@ -154,7 +155,7 @@ export default async function BillingPage({
             <div className="flex items-start gap-2 text-stone-700">
               <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-emerald-600" />
               <div>
-                <p className="font-medium">Up to 20 bookings per month</p>
+                <p className="font-medium">Up to {FREE_MONTHLY_BOOKING_LIMIT} bookings per month</p>
                 <p className="mt-0.5 text-xs text-stone-500">Your allowance resets each month.</p>
               </div>
             </div>

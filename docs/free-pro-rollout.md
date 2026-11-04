@@ -45,14 +45,14 @@ without an error before deploying the corresponding app commit.
 
 ## Verification in Stripe test mode and a disposable booking page
 
-1. Confirm Free shows 20 bookings and Pro shows unlimited in Billing.
-2. Create 20 confirmed appointments scheduled in the same shop-local month,
+1. Confirm Free shows 100 bookings and Pro shows unlimited in Billing.
+2. Create 100 confirmed appointments scheduled in the same shop-local month,
    including at least one manual booking. The next public booking must show the
    neutral shop-contact message; the next manual booking must show Upgrade.
 3. Cancel one appointment; one more booking in that month should succeed.
    A pending attempt must not consume allowance.
 4. Submit two booking requests for the final slot at once. Only one may succeed.
-   Repeat with distinct slots when 19 appointments exist; only one may succeed.
+   Repeat with distinct slots when 99 appointments exist; only one may succeed.
 5. Reschedule into a full month and confirm the original appointment remains.
    Reschedule into a month with capacity and check the new date and reminder.
 6. Complete a test-mode Checkout, send renewal, past-due, unpaid and deletion

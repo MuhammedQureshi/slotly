@@ -1,6 +1,6 @@
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
 
-export const FREE_MONTHLY_BOOKING_LIMIT = 20
+export const FREE_MONTHLY_BOOKING_LIMIT = 100
 export const BOOKING_PAGE_LIMIT = 1
 
 export function getEntitlements(plan: string | null | undefined) {
