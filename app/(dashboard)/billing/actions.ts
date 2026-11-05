@@ -5,7 +5,8 @@ import { redirect } from 'next/navigation'
 
 import { supabaseAdmin } from '@/lib/supabase'
 import { getAppUrl, getStripe } from '@/lib/stripe'
-import { chooseProSubscription } from '@/lib/subscription-entitlements'
+import { chooseProSubscription, currentProPriceId, recognizedProPriceIds } from '@/lib/subscription-entitlements'
+import { PRO_MONTHLY_PRICE_GBP } from '@/lib/plans'
 
 export type BillingActionState = { error: string } | null
 
@@ -64,11 +65,7 @@ export async function startCheckout(
   try {
     const stripe = getStripe()
     const appUrl = getAppUrl()
-    const priceId = process.env.STRIPE_PRO_PRICE_ID
-
-    if (!priceId) {
-      throw new Error('STRIPE_PRO_PRICE_ID is not configured')
-    }
+    const priceId = currentProPriceId(process.env.STRIPE_PRO_PRICE_ID)
 
     const user = await getBillingUser(clerkUserId)
 
@@ -78,7 +75,7 @@ export async function startCheckout(
         status: 'all',
         limit: 100,
       })
-      const existingSubscription = chooseProSubscription(subscriptions.data, priceId).active
+      const existingSubscription = chooseProSubscription(subscriptions.data, recognizedProPriceIds(priceId)).active
 
       if (existingSubscription) {
         checkoutUrl = await createPortalUrl(user.stripe_customer_id)
@@ -90,6 +87,11 @@ export async function startCheckout(
     }
 
     if (!checkoutUrl) {
+      const price = await stripe.prices.retrieve(priceId)
+      if (!price.active || price.currency !== 'gbp' || price.unit_amount !== PRO_MONTHLY_PRICE_GBP * 100 || price.recurring?.interval !== 'month') {
+        throw new Error('Configured Stripe price does not match the advertised monthly Pro price')
+      }
+
       let customerId = user.stripe_customer_id
 
       if (!customerId) {

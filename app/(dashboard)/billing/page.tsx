@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/card'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getStripe } from '@/lib/stripe'
-import { FREE_MONTHLY_BOOKING_LIMIT } from '@/lib/plans'
+import { FREE_MONTHLY_BOOKING_LIMIT, PRO_MONTHLY_PRICE_GBP } from '@/lib/plans'
 
 import { BillingActionForm } from './BillingActionForm'
 
@@ -180,7 +180,7 @@ export default async function BillingPage({
           </CardHeader>
           <CardContent className="space-y-6">
             <p>
-              <span className="text-4xl font-semibold tracking-tight text-stone-950">£6.99</span>
+              <span className="text-4xl font-semibold tracking-tight text-stone-950">£{PRO_MONTHLY_PRICE_GBP}</span>
               <span className="text-stone-500"> / month</span>
             </p>
             <ul className="space-y-3">

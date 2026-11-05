@@ -41,7 +41,7 @@ without an error before deploying the corresponding app commit.
 
 ## Environment and scheduler
 
-- Keep the existing test-mode `STRIPE_SECRET_KEY`, `STRIPE_PRO_PRICE_ID` (£6.99
+- Keep the test-mode `STRIPE_SECRET_KEY`, `STRIPE_PRO_PRICE_ID` (£9
   GBP monthly), `STRIPE_WEBHOOK_SECRET`, and Stripe portal configuration.
 - Add the same long random value as `CRON_SECRET` in Vercel Production and
   `SLOTLY_CRON_SECRET` in this GitHub repository's Actions secrets. The included

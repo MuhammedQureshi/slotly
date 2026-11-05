@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import type Stripe from 'stripe'
-import { chooseProSubscription } from '../lib/subscription-entitlements'
+import { chooseProSubscription, currentProPriceId, recognizedProPriceIds } from '../lib/subscription-entitlements'
 
 function sub(id: string, status: Stripe.Subscription.Status, price: string): Stripe.Subscription {
   return { id, status, items: { data: [{ price: { id: price } }] } } as Stripe.Subscription
@@ -21,4 +21,16 @@ test('payment retries retain access, unpaid renewal does not', () => {
   const unpaid = chooseProSubscription([sub('unpaid', 'unpaid', 'price_pro')], 'price_pro')
   assert.equal(unpaid.active, undefined)
   assert.equal(unpaid.unpaid?.id, 'unpaid')
+})
+
+test('old Pro subscriptions keep access after the new price is configured', () => {
+  const selected = chooseProSubscription([
+    sub('existing', 'active', 'price_1UVxOTLPAmCB9yvZJlarLaTK'),
+  ], recognizedProPriceIds('price_new'))
+  assert.equal(selected.active?.id, 'existing')
+})
+
+test('the old test configuration migrates new checkouts to the £9 price', () => {
+  assert.equal(currentProPriceId('price_1UVxOTLPAmCB9yvZJlarLaTK'), 'price_1UYVdiLPAmCB9yvZgMnZcrBq')
+  assert.equal(currentProPriceId('price_live'), 'price_live')
 })

@@ -2,7 +2,7 @@ import type Stripe from 'stripe'
 
 import { supabaseAdmin } from '@/lib/supabase'
 import { getStripe } from '@/lib/stripe'
-import { chooseProSubscription } from '@/lib/subscription-entitlements'
+import { chooseProSubscription, currentProPriceId, recognizedProPriceIds } from '@/lib/subscription-entitlements'
 
 export const runtime = 'nodejs'
 
@@ -18,7 +18,7 @@ async function syncSubscription(customerId: string) {
     limit: 100,
   })
   const { active: current, unpaid } = chooseProSubscription(
-    subscriptions.data, process.env.STRIPE_PRO_PRICE_ID || ''
+    subscriptions.data, recognizedProPriceIds(currentProPriceId(process.env.STRIPE_PRO_PRICE_ID))
   )
 
   const { error } = await supabaseAdmin

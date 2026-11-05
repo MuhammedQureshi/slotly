@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
-import { FREE_MONTHLY_BOOKING_LIMIT } from '@/lib/plans'
+import { FREE_MONTHLY_BOOKING_LIMIT, PRO_MONTHLY_PRICE_GBP } from '@/lib/plans'
 
 export const metadata: Metadata = { title: 'Pricing | Slotly' }
 
@@ -44,7 +44,7 @@ export default function PricingPage() {
         <Card className="border-amber-300">
           <CardHeader><CardTitle>Pro</CardTitle><CardDescription>More flexibility and insight as you grow.</CardDescription></CardHeader>
           <CardContent className="space-y-6">
-            <p><span className="text-4xl font-semibold">£6.99</span><span className="text-stone-500"> / month</span></p>
+            <p><span className="text-4xl font-semibold">£{PRO_MONTHLY_PRICE_GBP}</span><span className="text-stone-500"> / month</span></p>
             <p className="text-sm text-stone-600">Everything in Free, plus:</p>
             <ul className="space-y-3 text-sm">{pro.map((feature) =>
               <li key={feature} className="flex gap-2"><Check aria-hidden="true" className="size-4 shrink-0 text-emerald-600" />{feature}</li>
