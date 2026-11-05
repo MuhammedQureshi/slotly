@@ -4,6 +4,9 @@ import {
   CalendarCheck2,
   CalendarDays,
   Clock3,
+  Globe2,
+  Plus,
+  Scissors,
   UsersRound,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -93,27 +96,49 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const firstName = clerkUser?.firstName || 'there'
 
   return (
-    <div className="space-y-8">
-      <header className="border-b border-stone-200 pb-6">
-        <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-amber-700 uppercase">
+    <div className="space-y-5">
+      <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <div>
+        <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-accent uppercase">
           Overview
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-stone-950">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Good to see you, {firstName}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-stone-600">
-          Here&apos;s how your barbershop is doing.
+        <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+          Here&apos;s what&apos;s happening with your bookings.
+        </p>
+        </div>
+        <p className="text-xs text-muted-foreground sm:pt-7">
+          {new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: timezone }).format(new Date())}
         </p>
       </header>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Link href="/bookings" className={buttonVariants({ size: 'sm', className: 'rounded-full px-3' })}>
+          <Plus aria-hidden="true" /> Add booking
+        </Link>
+        <Link href="/services" className={buttonVariants({ variant: 'outline', size: 'sm', className: 'rounded-full px-3' })}>
+          <Scissors aria-hidden="true" /> Add service
+        </Link>
+        <Link href="/my-page" className={buttonVariants({ variant: 'outline', size: 'sm', className: 'rounded-full px-3' })}>
+          <Globe2 aria-hidden="true" /> View booking page
+        </Link>
+      </div>
+
       {!isPro && (
-        <Card className="bg-amber-50/60" aria-label="Monthly booking allowance">
-          <CardHeader><CardTitle>{metrics.bookingsThisMonth} of {FREE_MONTHLY_BOOKING_LIMIT} bookings used</CardTitle>
+        <Card className="gap-3 bg-background py-4" aria-label="Monthly booking allowance">
+          <CardHeader><CardTitle>{metrics.bookingsThisMonth} of {FREE_MONTHLY_BOOKING_LIMIT} free bookings used</CardTitle>
             <CardDescription>Free allowance for {monthLabel}</CardDescription></CardHeader>
-          <CardContent className="flex flex-wrap items-center gap-2">
+          <CardContent>
+            <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-secondary">
+              <div className="h-full rounded-full bg-accent" style={{ width: `${Math.min((metrics.bookingsThisMonth / FREE_MONTHLY_BOOKING_LIMIT) * 100, 100)}%` }} />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
             {month > currentMonth && <Link href={`/dashboard?month=${previousMonth.toISOString().slice(0, 7)}`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>Previous month</Link>}
             <Link href={`/dashboard?month=${nextMonth.toISOString().slice(0, 7)}`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>Next month</Link>
             {metrics.bookingsThisMonth >= FREE_MONTHLY_BOOKING_LIMIT && <Link href="/billing" className={buttonVariants({ size: 'sm' })}>Upgrade for unlimited bookings</Link>}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -149,9 +174,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         />
       </section>
 
-      <Card
-        aria-labelledby="recent-bookings-heading"
-      >
+      <Card aria-labelledby="recent-bookings-heading" className="gap-0 py-0">
         <CardHeader className="flex flex-row items-center justify-between gap-4 border-b">
           <div>
             <CardTitle id="recent-bookings-heading">Recent bookings</CardTitle>
@@ -171,24 +194,24 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             {recentBookings.map((booking) => (
               <li
                 key={booking.id}
-                className="flex items-center gap-4 px-5 py-4 sm:px-6"
+                className="flex items-center gap-4 px-4 py-3.5 sm:px-5"
               >
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-700">
+                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent">
                   <CalendarDays aria-hidden="true" className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-stone-950">
+                  <p className="truncate font-medium text-foreground">
                     {booking.customer_name}
                   </p>
-                  <p className="mt-0.5 truncate text-sm text-stone-600">
+                  <p className="mt-0.5 truncate text-sm text-muted-foreground">
                     {booking.service?.name ?? 'Service unavailable'}
                   </p>
                 </div>
                 <div className="hidden text-right sm:block">
-                  <p className="text-sm font-medium text-stone-800">
+                  <p className="text-sm font-medium text-foreground">
                     {dateFormatter.format(new Date(booking.starts_at))}
                   </p>
-                  <p className="mt-0.5 text-sm text-stone-500">
+                  <p className="mt-0.5 text-sm text-muted-foreground">
                     {timeFormatter.format(new Date(booking.starts_at))}
                   </p>
                 </div>
@@ -200,11 +223,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </ul>
         ) : (
           <CardContent className="flex min-h-48 flex-col items-center justify-center text-center">
-            <span className="grid size-11 place-items-center rounded-full bg-stone-100 text-stone-500">
+            <span className="grid size-11 place-items-center rounded-full bg-secondary text-muted-foreground">
               <Clock3 aria-hidden="true" className="size-5" />
             </span>
-            <p className="mt-3 font-medium text-stone-950">No bookings yet</p>
-            <p className="mt-1 max-w-sm text-sm leading-6 text-stone-600">
+            <p className="mt-3 font-medium text-foreground">No bookings yet</p>
+            <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
               Bookings from your public page will appear here.
             </p>
           </CardContent>
