@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { UserButton } from '@clerk/nextjs'
 import {
   Calendar,
+  Clock3,
   CreditCard,
   Globe,
   LayoutDashboard,
@@ -14,7 +15,7 @@ import {
   ChartNoAxesCombined,
 } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -34,24 +35,31 @@ const NAV = [
   { label: 'Customers', href: '/customers', icon: Users, group: 'Manage' },
   { label: 'Statistics', href: '/stats', icon: ChartNoAxesCombined, group: 'Manage' },
   { label: 'Services', href: '/services', icon: Scissors, group: 'Manage' },
-  { label: 'My Page', href: '/my-page', icon: Globe, group: 'Workspace' },
+  { label: 'Booking page', href: '/my-page', icon: Globe, group: 'Workspace' },
+  { label: 'Availability', href: '/my-page?tab=availability', icon: Clock3, group: 'Workspace' },
   { label: 'Billing', href: '/billing', icon: CreditCard, group: 'Workspace' },
   { label: 'Settings', href: '/settings', icon: Settings, group: 'Workspace' },
 ]
 
 type NavLinksProps = {
   pathname: string
+  activeTab: string | null
   showUpgrade: boolean
+  bookingCount: number
   onNavigate?: () => void
 }
 
-function NavLinks({ pathname, showUpgrade, onNavigate }: NavLinksProps) {
+function NavLinks({ pathname, activeTab, showUpgrade, bookingCount, onNavigate }: NavLinksProps) {
   return (
     <nav className="flex-1 overflow-y-auto p-3" aria-label="Dashboard navigation">
       {['Manage', 'Workspace'].map((group, groupIndex) => <div key={group} className={groupIndex ? 'mt-6' : ''}>
         <p className="mb-2 px-2 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground/70 uppercase">{group}</p>
         <div className="space-y-1">{NAV.filter((item) => item.group === group).map(({ label, href, icon: Icon }) => {
-        const isActive = pathname === href || pathname.startsWith(`${href}/`)
+        const baseHref = href.split('?')[0]
+        const isAvailability = href.includes('tab=availability')
+        const isActive = pathname === baseHref && (
+          baseHref !== '/my-page' || (isAvailability ? activeTab === 'availability' : activeTab !== 'availability')
+        )
 
         return (
           <Link
@@ -68,6 +76,11 @@ function NavLinks({ pathname, showUpgrade, onNavigate }: NavLinksProps) {
           >
             <Icon aria-hidden="true" className="size-4" />
             {label}
+            {href === '/bookings' && bookingCount > 0 && (
+              <Badge className="ml-auto min-w-5 justify-center rounded-full bg-accent px-1.5 text-[10px] text-accent-foreground">
+                {bookingCount > 99 ? '99+' : bookingCount}
+              </Badge>
+            )}
             {href === '/billing' && showUpgrade && (
               <Badge variant="secondary" className="ml-auto bg-accent/10 text-[10px] text-accent">
                 Upgrade
@@ -100,8 +113,10 @@ function Account({ userName }: { userName?: string | null }) {
   )
 }
 
-export function Sidebar({ userName }: { userName?: string | null }) {
+export function Sidebar({ userName, bookingCount = 0 }: { userName?: string | null; bookingCount?: number }) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const activeTab = searchParams.get('tab')
   const [isOpen, setIsOpen] = useState(false)
   const { isPro, loading } = useUserPlan()
   const showUpgrade = !loading && !isPro
@@ -129,7 +144,9 @@ export function Sidebar({ userName }: { userName?: string | null }) {
             </SheetHeader>
             <NavLinks
               pathname={pathname}
+              activeTab={activeTab}
               showUpgrade={showUpgrade}
+              bookingCount={bookingCount}
               onNavigate={() => setIsOpen(false)}
             />
             <Account userName={userName} />
@@ -141,7 +158,7 @@ export function Sidebar({ userName }: { userName?: string | null }) {
         <div className="flex h-14 items-center border-b border-sidebar-border px-4">
           <Brand />
         </div>
-        <NavLinks pathname={pathname} showUpgrade={showUpgrade} />
+        <NavLinks pathname={pathname} activeTab={activeTab} showUpgrade={showUpgrade} bookingCount={bookingCount} />
         <Account userName={userName} />
       </aside>
     </>

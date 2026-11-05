@@ -79,13 +79,17 @@ export default function BookingsTable({
   bookings,
   canWriteNotes,
   timezone,
+  searchQuery = '',
+  initialView = 'all',
 }: {
   bookings: Booking[]
   canWriteNotes: boolean
   timezone: string
+  searchQuery?: string
+  initialView?: 'all' | 'day' | 'week'
 }) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
-  const [view, setView] = useState<'all' | 'day' | 'week'>('all')
+  const [view, setView] = useState<'all' | 'day' | 'week'>(initialView)
   const [selectedDate, setSelectedDate] = useState(() => formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd'))
   const day = new Date(`${selectedDate}T12:00:00Z`)
   const weekStart = new Date(day)
@@ -112,7 +116,7 @@ export default function BookingsTable({
               Bookings
             </h1>
             <p className="mt-1 text-sm text-slate-500">
-              View customer details and upcoming appointments.
+              {searchQuery ? `Results matching “${searchQuery}”.` : 'View customer details and upcoming appointments.'}
             </p>
           </div>
           <Badge variant="secondary">

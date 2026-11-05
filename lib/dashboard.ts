@@ -14,7 +14,16 @@ export type RecentBooking = {
   customer_name: string
   starts_at: string
   status: string
+  price_pence: number | null
   service: { name: string } | null
+}
+
+export type DashboardActivity = {
+  today: RecentBooking[]
+  trend: Array<{ date: string; count: number }>
+  last30Count: number
+  previous30Count: number
+  cancelledLast30: number
 }
 
 function getPeriodBoundaries(timezone: string, month: string, now = new Date()) {
@@ -42,6 +51,88 @@ async function getBookingPageIds(userId: string) {
   }
 
   return (data ?? []).map((page) => page.id)
+}
+
+export async function getUpcomingBookingCount(userId: string) {
+  const bookingPageIds = await getBookingPageIds(userId)
+  if (bookingPageIds.length === 0) return 0
+
+  const { count, error } = await supabaseAdmin
+    .from('bookings')
+    .select('*', { count: 'exact', head: true })
+    .in('booking_page_id', bookingPageIds)
+    .eq('status', 'confirmed')
+    .gte('starts_at', new Date().toISOString())
+
+  if (error) throw new Error('Could not count upcoming bookings: ' + error.message)
+  return count ?? 0
+}
+
+export async function getDashboardActivity(
+  userId: string,
+  timezone = 'Europe/London',
+  now = new Date()
+): Promise<DashboardActivity> {
+  const bookingPageIds = await getBookingPageIds(userId)
+  if (bookingPageIds.length === 0) {
+    return { today: [], trend: [], last30Count: 0, previous30Count: 0, cancelledLast30: 0 }
+  }
+
+  const today = formatInTimeZone(now, timezone, 'yyyy-MM-dd')
+  const localNoon = new Date(`${today}T12:00:00Z`)
+  const dateAtOffset = (offset: number) => {
+    const date = new Date(localNoon)
+    date.setUTCDate(date.getUTCDate() + offset)
+    return date.toISOString().slice(0, 10)
+  }
+  const start60 = fromZonedTime(`${dateAtOffset(-59)}T00:00:00`, timezone)
+  const start30 = fromZonedTime(`${dateAtOffset(-29)}T00:00:00`, timezone)
+  const startToday = fromZonedTime(`${today}T00:00:00`, timezone)
+  const startTomorrow = fromZonedTime(`${dateAtOffset(1)}T00:00:00`, timezone)
+
+  const { data, error } = await supabaseAdmin
+    .from('bookings')
+    .select('id, customer_name, starts_at, status, price_pence, service:service_id(name)')
+    .in('booking_page_id', bookingPageIds)
+    .gte('starts_at', start60.toISOString())
+    .lt('starts_at', startTomorrow.toISOString())
+    .order('starts_at', { ascending: true })
+
+  if (error) throw new Error('Could not load dashboard activity: ' + error.message)
+
+  const bookings = (data ?? []).map((booking) => ({
+    ...booking,
+    service: Array.isArray(booking.service)
+      ? booking.service[0] ?? null
+      : booking.service ?? null,
+  })) as RecentBooking[]
+  const activeStatuses = new Set(['confirmed', 'completed', 'no_show'])
+  const active = bookings.filter((booking) => activeStatuses.has(booking.status))
+  const trend = Array.from({ length: 30 }, (_, index) => {
+    const date = dateAtOffset(index - 29)
+    return {
+      date,
+      count: active.filter(
+        (booking) => formatInTimeZone(booking.starts_at, timezone, 'yyyy-MM-dd') === date
+      ).length,
+    }
+  })
+
+  return {
+    today: bookings.filter((booking) =>
+      booking.status === 'confirmed' &&
+      new Date(booking.starts_at) >= startToday &&
+      new Date(booking.starts_at) < startTomorrow
+    ),
+    trend,
+    last30Count: active.filter((booking) => new Date(booking.starts_at) >= start30).length,
+    previous30Count: active.filter((booking) =>
+      new Date(booking.starts_at) >= start60 && new Date(booking.starts_at) < start30
+    ).length,
+    cancelledLast30: bookings.filter((booking) =>
+      booking.status === 'cancelled' && new Date(booking.starts_at) >= start30
+    ).length,
+  }
 }
 
 export async function getDashboardMetrics(
@@ -143,7 +234,7 @@ export async function getRecentBookings(userId: string): Promise<RecentBooking[]
 
   const { data, error } = await supabaseAdmin
     .from('bookings')
-    .select('id, customer_name, starts_at, status, service:service_id(name)')
+    .select('id, customer_name, starts_at, status, price_pence, service:service_id(name)')
     .in('booking_page_id', bookingPageIds)
     .order('starts_at', { ascending: false })
     .limit(5)

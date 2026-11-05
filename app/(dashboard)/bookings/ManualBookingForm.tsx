@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { DateTimeField } from '@/components/ui/date-picker'
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -13,7 +15,8 @@ import { createManualBooking } from './actions'
 
 type Service = { id: string; name: string }
 
-export default function ManualBookingForm({ services, timezone }: { services: Service[]; timezone: string }) {
+export default function ManualBookingForm({ services, timezone, defaultOpen = false }: { services: Service[]; timezone: string; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen)
   const [serviceId, setServiceId] = useState('')
   const [resetKey, setResetKey] = useState(0)
   const [requestKey, setRequestKey] = useState(() => crypto.randomUUID())
@@ -21,12 +24,15 @@ export default function ManualBookingForm({ services, timezone }: { services: Se
   const [message, setMessage] = useState('')
   const router = useRouter()
 
-  return <Card className="mb-6">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2"><CalendarPlus aria-hidden="true" className="size-4" /> Add an appointment</CardTitle>
-      <CardDescription>For customers who book by phone or in person.</CardDescription>
-    </CardHeader>
-    <CardContent>
+  return <Dialog open={open} onOpenChange={setOpen}>
+    <div className="mb-6 flex justify-end">
+      <DialogTrigger render={<Button />}><CalendarPlus aria-hidden="true" /> Add appointment</DialogTrigger>
+    </div>
+    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2 text-lg"><CalendarPlus aria-hidden="true" className="size-4" /> Add an appointment</DialogTitle>
+        <DialogDescription>For customers who book by phone or in person.</DialogDescription>
+      </DialogHeader>
       <form onSubmit={async (event) => {
         event.preventDefault()
         if (!serviceId) { setMessage('Choose a service.'); return }
@@ -44,6 +50,7 @@ export default function ManualBookingForm({ services, timezone }: { services: Se
             setResetKey((current) => current + 1)
             setRequestKey(crypto.randomUUID())
             form.reset()
+            setOpen(false)
             router.refresh()
           }
         } catch { setMessage('Unable to save. Please try again.') }
@@ -74,6 +81,6 @@ export default function ManualBookingForm({ services, timezone }: { services: Se
           {message && <p role="status" className="text-sm text-muted-foreground">{message}</p>}
         </div>
       </form>
-    </CardContent>
-  </Card>
+    </DialogContent>
+  </Dialog>
 }

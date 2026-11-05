@@ -6,7 +6,11 @@ import { getEntitlements } from '@/lib/plans'
 import { buttonVariants } from '@/components/ui/button'
 import { Download } from 'lucide-react'
 
-export default async function Bookings() {
+export default async function Bookings({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[]; new?: string; view?: string }>
+}) {
   const { userId: clerkUserId } = await auth()
 
   if (!clerkUserId) {
@@ -44,15 +48,37 @@ export default async function Bookings() {
   .in('booking_page_id', bookingPageIds)
   .order('starts_at', { ascending: false })
 
+  const params = await searchParams
+  const searchQuery = typeof params.q === 'string' ? params.q.trim() : ''
+  const normalizedQuery = searchQuery.toLowerCase()
+  const visibleBookings = normalizedQuery
+    ? (bookings ?? []).filter((booking) => {
+        const service = Array.isArray(booking.service) ? booking.service[0] : booking.service
+        return [booking.customer_name, booking.customer_email, booking.customer_phone, service?.name]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(normalizedQuery))
+      })
+    : bookings ?? []
+
   return (
     <div>
       <div className="mb-6 flex flex-wrap gap-2">
         <a href="/api/export?kind=appointments" className={buttonVariants({ variant: 'outline' })}><Download aria-hidden="true" /> Appointments CSV</a>
         <a href="/api/export?kind=customers" className={buttonVariants({ variant: 'outline' })}><Download aria-hidden="true" /> Customers CSV</a>
       </div>
-      <ManualBookingForm services={services ?? []} timezone={bookingPages[0].timezone || 'Europe/London'} />
-      <BookingsTable bookings={bookings ?? []} canWriteNotes={getEntitlements(user.plan).customerHistoryAndNotes}
-        timezone={bookingPages[0].timezone || 'Europe/London'} />
+      <ManualBookingForm
+        key={params.new === 'true' ? 'open' : 'closed'}
+        services={services ?? []}
+        timezone={bookingPages[0].timezone || 'Europe/London'}
+        defaultOpen={params.new === 'true'}
+      />
+      <BookingsTable
+        bookings={visibleBookings}
+        canWriteNotes={getEntitlements(user.plan).customerHistoryAndNotes}
+        timezone={bookingPages[0].timezone || 'Europe/London'}
+        searchQuery={searchQuery}
+        initialView={params.view === 'day' ? 'day' : 'all'}
+      />
     </div>
   )
 }
