@@ -11,6 +11,7 @@ export default function SignUpPage() {
         <h1 className="text-xl font-semibold">Create your account</h1>
       </div>
       <div className="flex justify-center"><SignUp fallbackRedirectUrl="/onboarding" /></div>
+      <p className="text-xs leading-5 text-muted-foreground">By creating an account, you agree to our <Link className="underline hover:text-foreground" href="/terms">Terms of Service</Link> and acknowledge our <Link className="underline hover:text-foreground" href="/privacy">Privacy Policy</Link>.</p>
     </div>
   </main>
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   ArrowLeft,
@@ -352,6 +353,10 @@ export default function BookingForm({
             </div>
           ) : null}
 
+          <p className="text-xs leading-5 text-slate-600">
+            Your details are shared with the business you book with so they can manage your appointment. See Slotly&apos;s{' '}
+            <Link href="/privacy" target="_blank" className="font-medium underline underline-offset-2">Privacy Policy</Link>.
+          </p>
           <Button
             type="submit"
             disabled={isSubmitting}

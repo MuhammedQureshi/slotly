@@ -1,0 +1,20 @@
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { LegalLayout } from '@/components/legal/LegalLayout'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Slotly',
+  description: 'How Slotly handles account, booking and billing information.',
+}
+
+export default function PrivacyPage() {
+  return <LegalLayout title="Privacy Policy" updated="6 November 2026">
+    <section><h2>Who we are</h2><p>Slotly provides online booking pages and appointment management for independent businesses. For questions about this notice or your data, email <a className="underline" href="mailto:privacy@slotlyapp.uk">privacy@slotlyapp.uk</a>.</p><p>When a business uses Slotly to take appointments, that business decides how to use its customers’ booking information. It is generally the data controller for those bookings, and Slotly processes them to provide the service. Slotly is responsible for its own account, billing and website operations.</p></section>
+    <section><h2>Information we handle</h2><ul><li>Business account details: name, email address, authentication identifiers, business profile, services, availability, logo and settings.</li><li>Appointment details: customer name, email address, optional phone number and notes, service, price, time, status and appointment history.</li><li>Subscription details: plan, Stripe customer and subscription identifiers and billing status. Stripe handles card details; Slotly does not receive full card numbers.</li><li>Technical data: security and service logs, such as IP address, browser information and requests, plus essential cookies and your cookie notice choice.</li></ul></section>
+    <section><h2>Why we use it</h2><p>We use account and booking data to provide booking pages, manage appointments, send confirmations and reminders, prevent misuse and provide support. We use billing identifiers to manage Pro subscriptions. For account holders our main legal basis is providing the service under our contract; security and service improvement rely on our legitimate interests; and some billing records may be kept for legal obligations. Businesses are responsible for telling their own customers why they collect booking details and choosing an appropriate legal basis.</p></section>
+    <section><h2>Who receives data</h2><p>Bookings are available to the business you book with. We use Clerk for account sign-in, Supabase for data storage, Resend for booking emails, Stripe for subscriptions and payments, and Vercel for hosting. These providers receive only information needed for their role. The landing page also loads fonts from Google and a background video from a CloudFront-hosted URL; those services may receive technical request data such as your IP address. Provider systems may process data outside the UK.</p></section>
+    <section><h2>How long we keep it</h2><p>Account and appointment records are retained while the business account is active. Slotly does not currently automatically erase historical appointments after a fixed period. If an account is closed or you request deletion, we will remove or anonymise data where appropriate, subject to records we must retain for legal, billing, security or dispute purposes. If you made a booking, contact the business first about its own copy of your data.</p></section>
+    <section><h2>Your choices and rights</h2><p>You may ask to access, correct, delete or receive your personal data, object to certain uses, or restrict processing where applicable. Email <a className="underline" href="mailto:privacy@slotlyapp.uk">privacy@slotlyapp.uk</a>. If your request concerns an appointment, we may direct you to the business you booked with. You can also complain to the <a className="underline" href="https://ico.org.uk/make-a-complaint/" target="_blank" rel="noreferrer">UK Information Commissioner’s Office</a>.</p><p>See our <Link className="underline" href="/cookies">Cookie Policy</Link> for details about browser storage.</p></section>
+    <section><h2>Changes</h2><p>We may update this notice when the service changes. The latest version and its date will appear on this page.</p></section>
+  </LegalLayout>
+}

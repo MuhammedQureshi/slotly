@@ -11,6 +11,7 @@ import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CookieNotice } from '@/components/legal/CookieNotice'
 import { cn } from '@/lib/utils'
 
 const fadeUp = (y: number, duration: number, delay = 0) => ({
@@ -192,7 +193,8 @@ export function LandingHero() {
 
       <section className="px-6 py-8"><motion.div {...reveal} className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-primary px-6 py-16 text-center text-primary-foreground sm:px-12 sm:py-24"><div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--accent)/0.22),transparent_45%)]" /><div className="relative mx-auto max-w-2xl"><p className="text-xs font-semibold tracking-[0.18em] text-primary-foreground/60 uppercase">Your next booking is waiting</p><h2 className="mt-4 font-display text-4xl leading-none sm:text-6xl">Stop losing bookings to <span className="italic">missed calls.</span></h2><p className="mx-auto mt-5 max-w-xl leading-7 text-primary-foreground/65">Give customers a simple way to book while you stay focused on your work.</p><Button nativeButton={false} render={<Link href="/sign-up" />} className="mt-8 h-11 rounded-full bg-background px-6 text-foreground hover:bg-background/90">Get started free <ArrowRight className="size-4" /></Button></div></motion.div></section>
 
-      <footer className="px-6 py-10"><div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 border-t border-border pt-8 sm:flex-row"><Link href="/" className="text-xl font-semibold tracking-tight">✦ Slotly</Link><div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground"><a href="#how-it-works" className="hover:text-foreground">How it works</a><a href="#pricing" className="hover:text-foreground">Pricing</a><a href="#faq" className="hover:text-foreground">FAQ</a><Link href="/sign-in" className="hover:text-foreground">Log in</Link></div><p className="text-sm text-muted-foreground">© 2026 Slotly</p></div></footer>
+      <footer className="px-6 py-10"><div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 border-t border-border pt-8 sm:flex-row"><Link href="/" className="text-xl font-semibold tracking-tight">✦ Slotly</Link><div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground"><a href="#how-it-works" className="hover:text-foreground">How it works</a><a href="#pricing" className="hover:text-foreground">Pricing</a><a href="#faq" className="hover:text-foreground">FAQ</a><Link href="/sign-in" className="hover:text-foreground">Log in</Link><Link href="/privacy" className="hover:text-foreground">Privacy</Link><Link href="/cookies" className="hover:text-foreground">Cookies</Link><Link href="/terms" className="hover:text-foreground">Terms</Link></div><p className="text-sm text-muted-foreground">© 2026 Slotly</p></div></footer>
+      <CookieNotice />
     </main>
   )
 }
