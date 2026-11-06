@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight, Check, Copy, ExternalLink } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -103,7 +103,7 @@ export default function OnboardingWizard({ initialPage, initialServices, origin 
         </CardContent></>}
         {step === 4 && <><CardHeader><CardTitle>You’re live!</CardTitle><CardDescription>Your booking page is ready to share with customers.</CardDescription></CardHeader><CardContent className="space-y-5">
           <div className="break-all rounded-lg border bg-secondary p-4 text-sm">{url}</div>
-          <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={async () => { await navigator.clipboard.writeText(`${window.location.origin}${path}`); setCopied(true) }}><Copy className="size-4" />{copied ? 'Copied' : 'Copy link'}</Button><Button variant="outline" render={<a href={path} target="_blank" rel="noreferrer" />}><ExternalLink className="size-4" />View page</Button></div>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={async () => { await navigator.clipboard.writeText(`${window.location.origin}${path}`); setCopied(true) }}><Copy className="size-4" />{copied ? 'Copied' : 'Copy link'}</Button><Link href={path} target="_blank" rel="noreferrer" className={buttonVariants({ variant: 'outline' })}><ExternalLink className="size-4" />View page</Link></div>
           <Button disabled={busy} onClick={() => void run(async () => { const result = await completeOnboarding(); if ('error' in result) { setError(result.error ?? 'Could not finish.'); return } router.replace('/dashboard'); router.refresh() })}>Go to dashboard <ArrowRight className="size-4" /></Button>
         </CardContent></>}
         {error && <p role="alert" className="mx-6 mb-5 text-sm text-destructive">{error}</p>}
