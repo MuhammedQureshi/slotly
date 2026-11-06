@@ -1,6 +1,6 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { formatInTimeZone } from 'date-fns-tz'
-import { Clock3, Globe2, MoreHorizontal, Plus, Scissors } from 'lucide-react'
+import { CalendarDays, Clock3, Globe2, MoreHorizontal, Plus, Scissors } from 'lucide-react'
 import Link from 'next/link'
 
 import { BookingsChart } from '@/components/dashboard/BookingsChart'
@@ -89,6 +89,9 @@ export default async function DashboardPage() {
         </Link>
         <Link href="/my-page?tab=availability" className={buttonVariants({ variant: 'outline', className: 'rounded-full px-4' })}>
           <Clock3 aria-hidden="true" /> Block time
+        </Link>
+        <Link href="/bookings?view=calendar" className={buttonVariants({ variant: 'outline', className: 'rounded-full px-4' })}>
+          <CalendarDays aria-hidden="true" /> Calendar
         </Link>
         <Link href={bookingPage?.slug ? `/book/${bookingPage.slug}` : '/my-page'} target={bookingPage?.slug ? '_blank' : undefined} rel={bookingPage?.slug ? 'noreferrer' : undefined} className={buttonVariants({ variant: 'outline', className: 'rounded-full px-4' })}>
           <Globe2 aria-hidden="true" /> View page

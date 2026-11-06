@@ -18,6 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import BookingSheet from './BookingSheet'
+import BookingsCalendar from './BookingsCalendar'
 
 export type Booking = {
   id: string
@@ -86,18 +87,19 @@ export default function BookingsTable({
   canWriteNotes: boolean
   timezone: string
   searchQuery?: string
-  initialView?: 'all' | 'day' | 'week'
+  initialView?: 'all' | 'day' | 'week' | 'calendar'
 }) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
-  const [view, setView] = useState<'all' | 'day' | 'week'>(initialView)
+  const [view, setView] = useState<'all' | 'day' | 'week' | 'calendar'>(initialView)
   const [selectedDate, setSelectedDate] = useState(() => formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd'))
+  const [calendarMonth, setCalendarMonth] = useState(() => formatInTimeZone(new Date(), timezone, 'yyyy-MM'))
   const day = new Date(`${selectedDate}T12:00:00Z`)
   const weekStart = new Date(day)
   weekStart.setUTCDate(day.getUTCDate() - (day.getUTCDay() + 6) % 7)
   const weekEnd = new Date(weekStart)
   weekEnd.setUTCDate(weekStart.getUTCDate() + 7)
   const visibleBookings = bookings.filter((booking) => {
-    if (view === 'all') return true
+    if (view === 'all' || view === 'calendar') return true
     const localDate = formatInTimeZone(new Date(booking.starts_at), timezone, 'yyyy-MM-dd')
     return view === 'day' ? localDate === selectedDate :
       localDate >= weekStart.toISOString().slice(0, 10) && localDate < weekEnd.toISOString().slice(0, 10)
@@ -125,19 +127,22 @@ export default function BookingsTable({
         </div>
 
         <div className="mb-4 flex flex-wrap items-end gap-3">
-          <Tabs value={view} onValueChange={(value) => setView(value as 'all' | 'day' | 'week')}>
+          <Tabs value={view} onValueChange={(value) => setView(value as 'all' | 'day' | 'week' | 'calendar')}>
             <TabsList aria-label="Calendar view">
+              <TabsTrigger value="calendar">Calendar</TabsTrigger>
               <TabsTrigger value="day">Day</TabsTrigger>
               <TabsTrigger value="week">Week</TabsTrigger>
               <TabsTrigger value="all">All</TabsTrigger>
             </TabsList>
           </Tabs>
-          {view !== 'all' && <div className="w-48"><DatePicker label="View date" value={selectedDate} onValueChange={setSelectedDate} timezone={timezone} /></div>}
+          {(view === 'day' || view === 'week') && <div className="w-48"><DatePicker label="View date" value={selectedDate} onValueChange={setSelectedDate} timezone={timezone} /></div>}
         </div>
 
-        {visibleBookings.length === 0 && <Card className="mb-4"><CardContent className="text-sm text-muted-foreground">No appointments in this view.</CardContent></Card>}
+        {view === 'calendar' && <BookingsCalendar bookings={bookings} timezone={timezone} selectedDate={selectedDate} month={calendarMonth} onMonthChange={setCalendarMonth} onSelectDate={(date) => { setSelectedDate(date); setView('day') }} />}
 
-        {visibleBookings.length > 0 && <Card className="hidden py-0 md:block">
+        {view !== 'calendar' && visibleBookings.length === 0 && <Card className="mb-4"><CardContent className="text-sm text-muted-foreground">No appointments in this view.</CardContent></Card>}
+
+        {view !== 'calendar' && visibleBookings.length > 0 && <Card className="hidden py-0 md:block">
           <Table>
             <TableHeader className="bg-slate-50/80">
               <TableRow className="border-slate-200 hover:bg-transparent">
@@ -205,7 +210,7 @@ export default function BookingsTable({
           </Table>
         </Card>}
 
-        <div className="space-y-3 md:hidden">
+        {view !== 'calendar' && <div className="space-y-3 md:hidden">
           {visibleBookings.map((booking) => (
             <Card
               key={booking.id}
@@ -251,7 +256,7 @@ export default function BookingsTable({
               </CardContent>
             </Card>
           ))}
-        </div>
+        </div>}
       </section>
 
       <BookingSheet

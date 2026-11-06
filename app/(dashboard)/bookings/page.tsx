@@ -77,7 +77,7 @@ export default async function Bookings({
         canWriteNotes={getEntitlements(user.plan).customerHistoryAndNotes}
         timezone={bookingPages[0].timezone || 'Europe/London'}
         searchQuery={searchQuery}
-        initialView={params.view === 'day' ? 'day' : 'all'}
+        initialView={params.view === 'day' ? 'day' : params.view === 'calendar' ? 'calendar' : 'all'}
       />
     </div>
   )
