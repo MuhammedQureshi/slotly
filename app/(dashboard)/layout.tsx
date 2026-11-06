@@ -4,15 +4,18 @@ import { Bell, Plus } from 'lucide-react'
 import Link from 'next/link'
 
 import { DashboardSearch } from '@/components/dashboard/DashboardSearch'
+import { LiveBookingsRefresh } from '@/components/dashboard/LiveBookingsRefresh'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { buttonVariants } from '@/components/ui/button'
 import { ToastProvider } from '@/components/ui/toast'
 import { getUpcomingBookingCount } from '@/lib/dashboard'
+import { getBookingVersion } from '@/lib/booking-version'
 import { supabaseAdmin } from '@/lib/supabase'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser()
   let bookingCount = 0
+  let bookingVersion = '0:'
   if (user) {
     const { data: appUser } = await supabaseAdmin
       .from('users')
@@ -21,7 +24,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .maybeSingle()
     if (appUser) {
       try {
-        bookingCount = await getUpcomingBookingCount(appUser.id)
+        const [count, version] = await Promise.all([
+          getUpcomingBookingCount(appUser.id), getBookingVersion(appUser.id),
+        ])
+        bookingCount = count
+        bookingVersion = version
       } catch {
         bookingCount = 0
       }
@@ -29,6 +36,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return <ToastProvider>
+    <LiveBookingsRefresh initialVersion={bookingVersion} />
     <div className="flex h-dvh flex-col overflow-hidden bg-secondary/30 md:flex-row">
       <Sidebar userName={user?.firstName} bookingCount={bookingCount} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
