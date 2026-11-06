@@ -15,7 +15,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser()
   let bookingCount = 0
-  let bookingVersion = '0:'
+  let bookingVersion = '0::0:'
   if (user) {
     const { data: appUser } = await supabaseAdmin
       .from('users')
