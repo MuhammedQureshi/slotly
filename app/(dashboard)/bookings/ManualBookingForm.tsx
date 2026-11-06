@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { createManualBooking } from './actions'
 
 type Service = { id: string; name: string }
@@ -23,6 +23,7 @@ export default function ManualBookingForm({ services, timezone, defaultOpen = fa
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
+  const selectedService = services.find((service) => service.id === serviceId)
 
   return <Dialog open={open} onOpenChange={setOpen}>
     <div className="mb-6 flex justify-end">
@@ -61,7 +62,11 @@ export default function ManualBookingForm({ services, timezone, defaultOpen = fa
           <div className="space-y-2">
             <Label htmlFor="manual-service">Service</Label>
             <Select value={serviceId} onValueChange={(value) => setServiceId(value ?? '')}>
-              <SelectTrigger id="manual-service" className="w-full"><SelectValue placeholder="Choose a service" /></SelectTrigger>
+              <SelectTrigger id="manual-service" className="h-10 w-full">
+                <span className={selectedService ? 'min-w-0 flex-1 truncate text-left' : 'min-w-0 flex-1 truncate text-left text-muted-foreground'}>
+                  {selectedService?.name ?? 'Choose a service'}
+                </span>
+              </SelectTrigger>
               <SelectContent>{services.map((service) => <SelectItem key={service.id} value={service.id}>{service.name}</SelectItem>)}</SelectContent>
             </Select>
             <input type="hidden" name="service_id" value={serviceId} />

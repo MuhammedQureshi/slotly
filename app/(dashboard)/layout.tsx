@@ -32,17 +32,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="flex h-dvh flex-col overflow-hidden bg-secondary/30 md:flex-row">
       <Sidebar userName={user?.firstName} bookingCount={bookingCount} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="hidden h-14 shrink-0 items-center border-b border-border bg-background px-5 md:flex">
+        <header className="hidden h-16 shrink-0 items-center border-b border-border bg-background px-6 md:flex">
           <DashboardSearch />
-          <Link href="/bookings?new=true" className={buttonVariants({ size: 'sm', className: 'ml-auto rounded-full px-3' })}>
-            <Plus aria-hidden="true" className="size-3.5" /> New booking
+          <Link href="/bookings?new=true" className={buttonVariants({ className: 'ml-auto rounded-full px-4' })}>
+            <Plus aria-hidden="true" className="size-4" /> New booking
           </Link>
-          <Link href="/bookings?view=day" aria-label="View today's bookings" className="ml-2 grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground">
+          <Link href="/bookings?view=day" aria-label="View today's bookings" className="ml-2 grid size-10 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground">
             <Bell aria-hidden="true" className="size-4" />
           </Link>
           <div className="ml-1.5"><UserButton /></div>
         </header>
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-7">
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>
       </div>

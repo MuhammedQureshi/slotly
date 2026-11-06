@@ -53,7 +53,7 @@ function NavLinks({ pathname, activeTab, showUpgrade, bookingCount, onNavigate }
   return (
     <nav className="flex-1 overflow-y-auto p-3" aria-label="Dashboard navigation">
       {['Manage', 'Workspace'].map((group, groupIndex) => <div key={group} className={groupIndex ? 'mt-6' : ''}>
-        <p className="mb-2 px-2 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground/70 uppercase">{group}</p>
+        <p className="mb-2 px-2 text-xs font-semibold tracking-[0.14em] text-muted-foreground/70 uppercase">{group}</p>
         <div className="space-y-1">{NAV.filter((item) => item.group === group).map(({ label, href, icon: Icon }) => {
         const baseHref = href.split('?')[0]
         const isAvailability = href.includes('tab=availability')
@@ -68,7 +68,7 @@ function NavLinks({ pathname, activeTab, showUpgrade, bookingCount, onNavigate }
             onClick={onNavigate}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm font-medium transition-colors',
+              'flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
               isActive
                 ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                 : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-sidebar-foreground'
@@ -123,7 +123,7 @@ export function Sidebar({ userName, bookingCount = 0 }: { userName?: string | nu
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 md:hidden">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 md:hidden">
         <Brand />
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger
@@ -154,8 +154,8 @@ export function Sidebar({ userName, bookingCount = 0 }: { userName?: string | nu
         </Sheet>
       </header>
 
-      <aside className="hidden w-52 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
-        <div className="flex h-14 items-center border-b border-sidebar-border px-4">
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+        <div className="flex h-16 items-center border-b border-sidebar-border px-5">
           <Brand />
         </div>
         <NavLinks pathname={pathname} activeTab={activeTab} showUpgrade={showUpgrade} bookingCount={bookingCount} />
