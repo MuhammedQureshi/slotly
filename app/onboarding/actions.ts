@@ -1,6 +1,7 @@
 'use server'
 
 import { auth, currentUser } from '@clerk/nextjs/server'
+import { createClerkClient } from '@clerk/backend'
 import { revalidatePath } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { generateSlug } from '@/lib/utils'
@@ -11,15 +12,46 @@ const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/
 async function owner() {
   const { userId } = await auth()
   if (!userId) return null
-  let { data } = await supabaseAdmin.from('users').select('id, onboarding_complete').eq('clerk_user_id', userId).maybeSingle()
+  const existing = await supabaseAdmin.from('users').select('id, onboarding_complete').eq('clerk_user_id', userId).maybeSingle()
+  if (existing.error) {
+    console.error('Onboarding account lookup failed:', existing.error)
+    return null
+  }
+  let data = existing.data
   if (!data) {
     const clerkUser = await currentUser()
-    const email = clerkUser?.emailAddresses[0]?.emailAddress
-    if (!email) return null
-    const result = await supabaseAdmin.from('users').upsert({
+    if (!clerkUser) return null
+    const primaryEmail = clerkUser?.emailAddresses.find((item) => item.id === clerkUser.primaryEmailAddressId)
+    const email = primaryEmail?.emailAddress
+    if (!email || primaryEmail.verification?.status !== 'verified') return null
+    const account = {
       clerk_user_id: userId, email,
       full_name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' '),
-    }, { onConflict: 'clerk_user_id' }).select('id, onboarding_complete').single()
+    }
+    let result = await supabaseAdmin.from('users').upsert(account, { onConflict: 'clerk_user_id' })
+      .select('id, onboarding_complete').single()
+    if (result.error?.code === '23505') {
+      const { data: stale } = await supabaseAdmin.from('users').select('id, clerk_user_id')
+        .eq('email', email).maybeSingle()
+      if (stale && stale.clerk_user_id !== userId) {
+        try {
+          const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! })
+          const previous = await clerk.users.getUser(stale.clerk_user_id)
+          const verified = previous.emailAddresses.find((item) => item.id === previous.primaryEmailAddressId)
+          if (verified?.verification?.status === 'verified' && verified.emailAddress.toLowerCase() !== email.toLowerCase()) {
+            const moved = await supabaseAdmin.from('users').update({ email: verified.emailAddress })
+              .eq('id', stale.id).eq('email', email).select('id').maybeSingle()
+            if (!moved.error && moved.data) {
+              result = await supabaseAdmin.from('users').upsert(account, { onConflict: 'clerk_user_id' })
+                .select('id, onboarding_complete').single()
+            }
+          }
+        } catch (error) {
+          console.error('Could not verify prior Clerk account during onboarding:', error)
+        }
+      }
+    }
+    if (result.error) console.error('Onboarding account sync failed:', result.error)
     data = result.data
   }
   return data
