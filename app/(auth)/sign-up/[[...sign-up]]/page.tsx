@@ -10,7 +10,7 @@ export default function SignUpPage() {
         <div><Badge variant="secondary">Built for barbers</Badge></div>
         <h1 className="text-xl font-semibold">Create your account</h1>
       </div>
-      <div className="flex justify-center"><SignUp fallbackRedirectUrl="/dashboard" /></div>
+      <div className="flex justify-center"><SignUp fallbackRedirectUrl="/onboarding" /></div>
     </div>
   </main>
 }
