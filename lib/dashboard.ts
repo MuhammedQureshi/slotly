@@ -90,17 +90,27 @@ export async function getDashboardActivity(
   const startToday = fromZonedTime(`${today}T00:00:00`, timezone)
   const startTomorrow = fromZonedTime(`${dateAtOffset(1)}T00:00:00`, timezone)
 
-  const { data, error } = await supabaseAdmin
-    .from('bookings')
-    .select('id, customer_name, starts_at, status, price_pence, service:service_id(name)')
-    .in('booking_page_id', bookingPageIds)
-    .gte('starts_at', start60.toISOString())
-    .lt('starts_at', startTomorrow.toISOString())
-    .order('starts_at', { ascending: true })
+  const [activityResult, cancellationsResult] = await Promise.all([
+    supabaseAdmin
+      .from('bookings')
+      .select('id, customer_name, starts_at, status, price_pence, service:service_id(name)')
+      .in('booking_page_id', bookingPageIds)
+      .gte('starts_at', start60.toISOString())
+      .lt('starts_at', startTomorrow.toISOString())
+      .order('starts_at', { ascending: true }),
+    supabaseAdmin
+      .from('bookings')
+      .select('*', { count: 'exact', head: true })
+      .in('booking_page_id', bookingPageIds)
+      .eq('status', 'cancelled')
+      .gte('cancelled_at', start30.toISOString())
+      .lte('cancelled_at', now.toISOString()),
+  ])
 
-  if (error) throw new Error('Could not load dashboard activity: ' + error.message)
+  if (activityResult.error) throw new Error('Could not load dashboard activity: ' + activityResult.error.message)
+  if (cancellationsResult.error) throw new Error('Could not count cancellations: ' + cancellationsResult.error.message)
 
-  const bookings = (data ?? []).map((booking) => ({
+  const bookings = (activityResult.data ?? []).map((booking) => ({
     ...booking,
     service: Array.isArray(booking.service)
       ? booking.service[0] ?? null
@@ -129,9 +139,7 @@ export async function getDashboardActivity(
     previous30Count: active.filter((booking) =>
       new Date(booking.starts_at) >= start60 && new Date(booking.starts_at) < start30
     ).length,
-    cancelledLast30: bookings.filter((booking) =>
-      booking.status === 'cancelled' && new Date(booking.starts_at) >= start30
-    ).length,
+    cancelledLast30: cancellationsResult.count ?? 0,
   }
 }
 
