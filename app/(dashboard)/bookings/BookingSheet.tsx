@@ -134,7 +134,7 @@ export default function BookingSheet({ booking, onClose, canWriteNotes, timezone
           if (!open) closeSheet()
         }}
       >
-        <SheetContent className="w-full gap-0 bg-white p-0 sm:max-w-md">
+        <SheetContent className="owner-app w-full gap-0 bg-white p-0 sm:max-w-md">
           <SheetHeader className="border-b border-slate-200 px-6 py-5">
             <p className="text-xs font-semibold tracking-[0.14em] text-amber-700 uppercase">
               Appointment
@@ -328,7 +328,7 @@ export default function BookingSheet({ booking, onClose, canWriteNotes, timezone
           }
         }}
       >
-        <DialogContent className="p-5 sm:max-w-md">
+        <DialogContent className="owner-app p-5 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-slate-950">
               Cancel this booking?

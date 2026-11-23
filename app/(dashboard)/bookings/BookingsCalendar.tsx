@@ -23,6 +23,7 @@ export default function BookingsCalendar({ bookings, timezone, selectedDate, onS
   const today = formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd')
   const byDate = new Map<string, Booking[]>()
   for (const booking of bookings) {
+    if (booking.status === 'cancelled') continue
     const date = formatInTimeZone(new Date(booking.starts_at), timezone, 'yyyy-MM-dd')
     byDate.set(date, [...(byDate.get(date) ?? []), booking])
   }

@@ -120,9 +120,9 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
 }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-5 p-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-5 p-6 sm:grid-cols-2">
 
-  <div className="grid gap-2">
+  <div className="grid gap-2 sm:col-span-2">
     <Label htmlFor="name">
       Service Name
     </Label>
@@ -218,7 +218,7 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
   </div>
 
 
-  <div className="grid gap-2">
+  <div className="grid gap-2 sm:col-span-2">
     <Label htmlFor="description">
       Description
     </Label>
@@ -239,7 +239,7 @@ export default function ServiceForm({ bookingPageId, service, onSuccess }: Props
   </div>
 
 
-  <Button type="submit" size="lg" className="mt-1" disabled={isSubmitting}>
+  <Button type="submit" size="lg" className="mt-1 sm:col-span-2" disabled={isSubmitting}>
     {isSubmitting ? 'Saving…' : service ? 'Save changes' : 'Create service'}
   </Button>
 

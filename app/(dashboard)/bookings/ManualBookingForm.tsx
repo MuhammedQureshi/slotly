@@ -29,7 +29,7 @@ export default function ManualBookingForm({ services, timezone, defaultOpen = fa
     <div className="mb-6 flex justify-end">
       <DialogTrigger render={<Button />}><CalendarPlus aria-hidden="true" /> Add appointment</DialogTrigger>
     </div>
-    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+    <DialogContent className="owner-app max-h-[90vh] overflow-y-auto sm:max-w-xl">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-lg"><CalendarPlus aria-hidden="true" className="size-4" /> Add an appointment</DialogTitle>
         <DialogDescription>For customers who book by phone or in person.</DialogDescription>
@@ -56,7 +56,7 @@ export default function ManualBookingForm({ services, timezone, defaultOpen = fa
           }
         } catch { setMessage('Unable to save. Please try again.') }
         finally { setSaving(false) }
-      }} className="grid gap-5">
+      }} className="grid gap-6">
         <input type="hidden" name="request_key" value={requestKey} />
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">

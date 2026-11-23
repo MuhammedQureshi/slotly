@@ -2,15 +2,8 @@
 
 import { useState } from "react"
 import { CalendarClock } from "lucide-react"
-import { getTimeOptions } from "@/lib/utils"
 import { Switch } from "../ui/switch"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Input } from '@/components/ui/input'
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -66,8 +59,6 @@ export default function AvailabilityEditor({
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
 
-  const timeOptions = getTimeOptions()
-
   function toggleDay(day_of_week: number) {
     setDays(currentDays => currentDays.map(day =>
         day.day_of_week === day_of_week ?
@@ -121,72 +112,42 @@ export default function AvailabilityEditor({
   }
 
   return (
-    <Card>
+    <Card className="gap-0 py-0">
       <CardHeader className="border-b">
-        <CardTitle className="flex items-center gap-2"><CalendarClock aria-hidden="true" className="size-4" /> Weekly availability</CardTitle>
-        <CardDescription>Set the hours customers can choose from.</CardDescription>
+        <CardTitle className="flex items-center gap-2 text-lg"><CalendarClock aria-hidden="true" className="size-5 text-accent" /> Weekly availability</CardTitle>
+        <CardDescription>Choose your regular working hours. Switch off days when you are closed.</CardDescription>
       </CardHeader>
 
       <CardContent className="divide-y">
-        {days.map(day => (
-        <div key={day.day_of_week} className="py-4">
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor={`day-${day.day_of_week}`}>
-              {DAY_NAMES[day.day_of_week]}
-            </Label>
-            <Switch id={`day-${day.day_of_week}`} checked={day.is_active} onCheckedChange={() => toggleDay(day.day_of_week)} />
-          </div>
-          {day.is_active ? (
-            <>
-            <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-              <Select
-                value={day.start_time}
-                onValueChange={val => val && updateTime(day.day_of_week, 'start_time', val)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Start Time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeOptions.map(time => (
-                    <SelectItem key={time.value} value={time.value}>
-                      {time.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="text-xs text-muted-foreground">to</span>
-              <Select
-                value={day.end_time}
-                onValueChange={val => val && updateTime(day.day_of_week, 'end_time', val)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="End Time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeOptions.map(time => (
-                    <SelectItem key={time.value} value={time.value}>
-                      {time.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {[1, 2, 3, 4, 5, 6, 0].map(index => {
+        const day = days[index]
+        return <div key={day.day_of_week} className="py-4">
+          <div className="grid gap-3 sm:grid-cols-[minmax(9rem,1fr)_minmax(0,1.4fr)] sm:items-center">
+            <div className="flex items-center gap-3">
+              <Switch id={`day-${day.day_of_week}`} checked={day.is_active} onCheckedChange={() => toggleDay(day.day_of_week)} />
+              <Label htmlFor={`day-${day.day_of_week}`} className="font-semibold">{DAY_NAMES[day.day_of_week]}</Label>
+              {!day.is_active && <span className="ml-auto text-sm text-muted-foreground sm:hidden">Closed</span>}
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {day.is_active ? <div className="grid grid-cols-2 gap-3 pl-11 sm:pl-0">
+              <div><Label htmlFor={`open-${index}`} className="mb-1 block text-xs text-muted-foreground">Opens</Label><Input id={`open-${index}`} aria-label={`${DAY_NAMES[index]} opens`} type="time" value={day.start_time} onChange={event => updateTime(index, 'start_time', event.target.value)} className="h-10 bg-background" /></div>
+              <div><Label htmlFor={`close-${index}`} className="mb-1 block text-xs text-muted-foreground">Closes</Label><Input id={`close-${index}`} aria-label={`${DAY_NAMES[index]} closes`} type="time" value={day.end_time} onChange={event => updateTime(index, 'end_time', event.target.value)} className="h-10 bg-background" /></div>
+            </div> : <p className="hidden text-sm text-muted-foreground sm:block">Closed</p>}
+          </div>
+          {day.is_active && <details className="group ml-11 mt-3 sm:ml-0">
+            <summary className="w-fit cursor-pointer list-none text-xs font-semibold text-accent hover:underline">{day.break_start && day.break_end ? `Break · ${day.break_start}–${day.break_end}` : 'Add a break'}</summary>
+            <div className="mt-3 grid gap-3 rounded-xl bg-secondary/50 p-3 sm:grid-cols-2">
               <TimePicker label={`${DAY_NAMES[day.day_of_week]} break starts`} value={day.break_start ?? ''}
                 onValueChange={(value) => updateTime(day.day_of_week, 'break_start', value)} optional />
               <TimePicker label={`${DAY_NAMES[day.day_of_week]} break ends`} value={day.break_end ?? ''}
                 onValueChange={(value) => updateTime(day.day_of_week, 'break_end', value)} optional />
             </div>
-            </>
-          ) : (
-            <p className="mt-2 text-xs text-muted-foreground">Unavailable</p>
-          )}
+          </details>}
         </div>
-        ))}
+        })}
       </CardContent>
 
-      <CardFooter>
-        <Button className="w-full" disabled={isSaving} onClick={handleSave}>
+      <CardFooter className="justify-end bg-card">
+        <Button className="w-full sm:w-auto" disabled={isSaving} onClick={handleSave}>
           {isSaving ? 'Saving…' : 'Save availability'}
         </Button>
       </CardFooter>

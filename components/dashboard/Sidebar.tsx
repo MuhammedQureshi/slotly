@@ -133,7 +133,7 @@ export function Sidebar({ userName, bookingCount = 0 }: { userName?: string | nu
               </Button>
             }
           />
-          <SheetContent side="left" className="w-[min(20rem,85vw)] gap-0 p-0 sm:max-w-xs">
+          <SheetContent side="left" className="owner-app w-[min(20rem,85vw)] gap-0 p-0 sm:max-w-xs">
             <SheetHeader className="border-b p-5">
               <SheetTitle>
                 <span className="text-xl font-semibold tracking-tight text-foreground">

@@ -129,5 +129,9 @@
   .owner-app [data-slot="table-body"] [data-slot="table-row"]:hover { background: hsl(var(--secondary) / .6); }
   .owner-app [data-slot="tabs-list"] { border-radius: .75rem; }
   .owner-app [data-slot="button"] { font-weight: 600; }
+  .owner-app [data-slot="input"], .owner-app [data-slot="select-trigger"] { min-height: 2.625rem; background-color: hsl(var(--card)); border-radius: .65rem; }
+  .owner-app [data-slot="textarea"] { background-color: hsl(var(--card)); border-radius: .65rem; }
+  .owner-app [data-slot="label"] { font-weight: 600; }
+  .owner-app [data-slot="sheet-content"], .owner-app [data-slot="dialog-content"] { color: hsl(var(--foreground)); }
   .owner-app :is(input, textarea, select) { font-family: inherit; }
 }

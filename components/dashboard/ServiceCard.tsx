@@ -19,10 +19,9 @@ import {
 } from '@/components/ui/dialog'
 
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import ServiceForm from './ServiceForm'
-import { Clock, Pencil, Trash2 } from 'lucide-react'
+import { Clock, Pencil, Scissors, Trash2 } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
 
 type Service = {
@@ -83,33 +82,17 @@ export default function ServiceCard({
       : `£${(service.price_pence / 100).toFixed(2)}`
 
   return (
-    <Card className="h-full">
-      <CardContent className="flex flex-1 items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h2 className="truncate text-lg font-semibold tracking-tight text-foreground">
-            {service.name}
-          </h2>
-
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Badge variant="secondary" className="gap-1.5">
-              <Clock aria-hidden="true" className="size-3.5" />
-              {service.duration_minutes} min
-            </Badge>
-
-            <Badge variant="outline" className="font-semibold">
-              {formattedPrice}
-            </Badge>
-          </div>
-
-          {service.description && (
-            <p className="mt-4 line-clamp-3 text-sm leading-6 text-muted-foreground">
-              {service.description}
-            </p>
-          )}
+    <Card className="h-full gap-0 py-0">
+      <CardContent className="flex flex-1 gap-4 p-5 sm:p-6">
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent"><Scissors aria-hidden="true" className="size-5" /></span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3"><h2 className="truncate text-lg font-bold text-foreground">{service.name}</h2><span className="shrink-0 text-base font-bold tabular-nums">{formattedPrice}</span></div>
+          <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground"><Clock aria-hidden="true" className="size-4" />{service.duration_minutes} minutes</p>
+          {service.description && <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">{service.description}</p>}
         </div>
       </CardContent>
 
-      <CardFooter className="mt-auto gap-2">
+      <CardFooter className="mt-auto gap-2 bg-card px-5 py-3 sm:px-6">
         <Button
           variant="outline"
           className="flex-1 border-border"
@@ -123,7 +106,7 @@ export default function ServiceCard({
             open={isEditOpen}
             onOpenChange={setIsEditOpen}
           >
-            <SheetContent className="sm:max-w-lg">
+            <SheetContent className="owner-app sm:max-w-lg">
               <SheetHeader className="border-b border-border px-6 py-5">
                 <SheetTitle className="text-lg font-semibold">
                   Edit {service.name}
@@ -168,7 +151,7 @@ export default function ServiceCard({
               onOpenChange={setIsDeleteOpen}
           >
 
-            <DialogContent>
+            <DialogContent className="owner-app">
               <DialogHeader>
                 <DialogTitle>
                   Delete Service?
