@@ -82,14 +82,14 @@ export default async function BillingPage({
           Billing
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Your Slotly plan
           </h1>
           <Badge variant={isPro ? 'default' : 'secondary'}>
             {isPro ? 'Pro' : 'Free'}
           </Badge>
         </div>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+        <p className="mt-2 max-w-2xl text-base leading-7 text-muted-foreground">
           Upgrade securely through Stripe, or manage your existing subscription.
         </p>
       </header>

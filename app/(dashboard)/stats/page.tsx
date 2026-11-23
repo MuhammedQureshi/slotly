@@ -52,20 +52,20 @@ export default async function StatsPage({ searchParams }: {
   const count = (status: string) => bookings.filter((booking) => booking.status === status).length
   const estimate = bookings.filter((booking) => ['confirmed', 'completed', 'no_show'].includes(booking.status))
     .reduce((total, booking) => total + (booking.price_pence ?? 0), 0)
-  return <div className="space-y-6">
-    <header><h1 className="text-3xl font-semibold tracking-tight">Booking statistics</h1>
-      <p className="mt-2 text-sm text-muted-foreground">A closer look at appointments and estimated service value.</p></header>
+  return <div className="space-y-7">
+    <header className="border-b pb-6"><p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-accent">Performance</p><h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Booking statistics</h1>
+      <p className="mt-2 text-base text-muted-foreground">A closer look at appointments and estimated service value.</p></header>
     <Card><CardContent>
       <StatisticsDateFilter key={`${from}:${to}`} initialFrom={from} initialTo={to}
         timezone={timezone} rangeAdjusted={rangeAdjusted} />
     </CardContent></Card>
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {([
         ['Appointments', bookings.length], ['Completed', count('completed')],
         ['Cancellations', count('cancelled')], ['No-shows', count('no_show')],
         ['Estimated service value', new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(estimate / 100)],
-      ] as [string, string | number][]).map(([label, value]) => <Card key={label}>
-        <CardHeader><CardDescription>{label}</CardDescription><CardTitle className="text-2xl font-semibold tabular-nums">{value}</CardTitle></CardHeader>
+      ] as [string, string | number][]).map(([label, value]) => <Card key={label} className="gap-0">
+        <CardHeader><CardDescription className="text-sm">{label}</CardDescription><CardTitle className="mt-4 text-3xl font-bold tabular-nums">{value}</CardTitle></CardHeader>
       </Card>)}
     </div>
     <p className="text-xs text-muted-foreground">Service value is an estimate based on appointment prices. Slotly does not collect customer payments.</p>

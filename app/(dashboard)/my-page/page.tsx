@@ -53,8 +53,8 @@ export default async function Mypage({ searchParams }: { searchParams: Promise<{
       <div className="space-y-8">
         <div className="border-b border-border pb-6">
           <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-accent uppercase">Online presence</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">My Page</h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Create the public page your customers will use to book.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Booking page</h1>
+          <p className="mt-2 text-base leading-7 text-muted-foreground">Create the public page your customers will use to book.</p>
         </div>
         <MyPageForm />
       </div>
@@ -105,8 +105,8 @@ export default async function Mypage({ searchParams }: { searchParams: Promise<{
       <div className="flex flex-col gap-5 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-accent uppercase">Online presence</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">My Page</h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Make your booking page your own and set the hours customers can book.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Booking page</h1>
+          <p className="mt-2 max-w-xl text-base leading-7 text-muted-foreground">Make your booking page your own and set the hours customers can book.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <CopyBookingLink slug={bookingPage.slug} />
@@ -120,7 +120,7 @@ export default async function Mypage({ searchParams }: { searchParams: Promise<{
       </div>
 
       <Tabs defaultValue={(await searchParams).tab === 'availability' ? 'availability' : 'appearance'} className="gap-6">
-        <TabsList aria-label="Booking page settings" className="h-10">
+        <TabsList aria-label="Booking page settings" className="h-11 rounded-xl border bg-card p-1">
           <TabsTrigger value="appearance" className="px-4">Appearance</TabsTrigger>
           <TabsTrigger value="availability" className="px-4">Availability</TabsTrigger>
         </TabsList>

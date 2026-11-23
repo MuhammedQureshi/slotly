@@ -81,7 +81,8 @@ export default async function DashboardPage() {
         </p>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2.5 border-b pb-7">
+      <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
+        <span className="mr-2 w-full text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground sm:w-auto">Quick actions</span>
         <Link href="/bookings?new=true" className={buttonVariants({ className: 'rounded-full bg-accent px-4 text-accent-foreground hover:bg-accent/85' })}>
           <Plus aria-hidden="true" /> Add booking
         </Link>
@@ -97,7 +98,7 @@ export default async function DashboardPage() {
         <Link href={bookingPage?.slug ? `/book/${bookingPage.slug}` : '/my-page'} target={bookingPage?.slug ? '_blank' : undefined} rel={bookingPage?.slug ? 'noreferrer' : undefined} className={buttonVariants({ variant: 'outline', className: 'rounded-full px-4' })}>
           <Globe2 aria-hidden="true" /> View page
         </Link>
-        <Link href="/my-page" className="ml-auto hidden text-sm font-medium text-muted-foreground hover:text-foreground sm:block">Customise</Link>
+        <Link href="/my-page" className="ml-auto hidden text-sm font-semibold text-accent hover:underline sm:block">Customise page</Link>
       </div>
 
       <section aria-label="Booking overview" className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(19rem,.65fr)]">
@@ -107,11 +108,11 @@ export default async function DashboardPage() {
               Bookings this month
               <span className="grid size-3.5 place-items-center rounded-full bg-accent text-accent-foreground"><span className="text-[9px]">✓</span></span>
             </div>
-            <p className="mt-3 text-3xl font-semibold tracking-tight">
+            <p className="mt-3 text-4xl font-bold tracking-tight tabular-nums">
               {metrics.bookingsThisMonth}
               <span className="ml-1.5 text-sm font-normal text-muted-foreground">/ {isPro ? 'unlimited' : FREE_MONTHLY_BOOKING_LIMIT}</span>
             </p>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
               <span className="text-muted-foreground">Last 30 days</span>
               <span className="text-accent">{delta >= 0 ? '+' : ''}{delta} bookings</span>
               <span className="text-destructive">{activity.cancelledLast30} cancelled</span>

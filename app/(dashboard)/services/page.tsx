@@ -49,13 +49,15 @@ const { data: services } = await supabase
           <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-accent uppercase">
             Booking menu
           </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Services</h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Services</h1>
+          <p className="mt-2 max-w-xl text-base leading-7 text-muted-foreground">
             These are the services that your customers can book.
           </p>
         </div>
         <CreateServiceSheet bookingPageId={bookingPage.id} />
       </div>
+
+      {services && services.length > 0 && <div className="flex items-center justify-between rounded-2xl border bg-card px-5 py-4"><div><p className="text-sm font-semibold">Your booking menu</p><p className="mt-0.5 text-sm text-muted-foreground">Edit prices, descriptions and appointment lengths.</p></div><span className="rounded-full bg-accent/10 px-3 py-1 text-sm font-semibold text-accent">{services.length} {services.length === 1 ? 'service' : 'services'}</span></div>}
 
       {services && services.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

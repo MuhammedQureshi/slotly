@@ -108,25 +108,16 @@ export default function BookingsTable({
   return (
     <>
       <section aria-labelledby="bookings-heading">
-        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-amber-700">Appointments</p>
-            <h1
-              id="bookings-heading"
-              className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl"
-            >
-              Bookings
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              {searchQuery ? `Results matching “${searchQuery}”.` : 'View customer details and upcoming appointments.'}
-            </p>
-          </div>
-          <Badge variant="secondary">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <p id="bookings-heading" className="text-sm font-semibold text-foreground">
+            {searchQuery ? `Results matching “${searchQuery}”` : 'Your appointments'}
+          </p>
+          <Badge variant="secondary" className="rounded-full px-3 py-1">
             {visibleBookings.length} {visibleBookings.length === 1 ? 'booking' : 'bookings'}
           </Badge>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-end gap-3">
+        <div className="mb-5 flex flex-wrap items-end gap-3 rounded-2xl border bg-card p-3 sm:p-4">
           <Tabs value={view} onValueChange={(value) => setView(value as 'all' | 'day' | 'week' | 'calendar')}>
             <TabsList aria-label="Calendar view">
               <TabsTrigger value="calendar">Calendar</TabsTrigger>
@@ -144,8 +135,8 @@ export default function BookingsTable({
 
         {view !== 'calendar' && visibleBookings.length > 0 && <Card className="hidden py-0 md:block">
           <Table>
-            <TableHeader className="bg-slate-50/80">
-              <TableRow className="border-slate-200 hover:bg-transparent">
+            <TableHeader className="bg-secondary/50">
+              <TableRow className="border-border hover:bg-transparent">
                 <TableHead className="h-12 px-5 text-xs font-semibold tracking-wide text-slate-500 uppercase">
                   Customer
                 </TableHead>
@@ -167,7 +158,7 @@ export default function BookingsTable({
               {visibleBookings.map((booking) => (
                 <TableRow
                   key={booking.id}
-                  className="border-slate-100 hover:bg-slate-50/70"
+                  className="border-border hover:bg-secondary/50"
                 >
                   <TableCell className="px-5 py-4">
                     <div className="font-semibold text-slate-900">

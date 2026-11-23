@@ -39,8 +39,8 @@ export default async function CustomersPage() {
     <header className="flex flex-wrap items-end justify-between gap-4 border-b pb-6">
       <div>
         <p className="mb-2 text-xs font-semibold tracking-widest text-accent uppercase">Your clients</p>
-        <h1 className="text-3xl font-semibold tracking-tight">Customers</h1>
-        <p className="mt-2 text-sm text-muted-foreground">People who have booked your barbershop.</p>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Customers</h1>
+        <p className="mt-2 text-base text-muted-foreground">People who have booked your barbershop.</p>
       </div>
       <a href="/api/export?kind=customers" className={buttonVariants({ variant: 'outline' })}>
         <Download aria-hidden="true" /> Download CSV
@@ -50,7 +50,7 @@ export default async function CustomersPage() {
     <Card>
       <CardHeader className="border-b">
         <div className="flex items-center justify-between gap-3">
-          <div><CardTitle>Client directory</CardTitle><CardDescription>{people.size} {people.size === 1 ? 'customer' : 'customers'}</CardDescription></div>
+          <div><CardTitle>Client directory</CardTitle><CardDescription className="mt-1">{people.size} {people.size === 1 ? 'customer' : 'customers'}</CardDescription></div>
           <UsersRound aria-hidden="true" className="size-5 text-muted-foreground" />
         </div>
       </CardHeader>
@@ -61,9 +61,9 @@ export default async function CustomersPage() {
             <TableHead className="hidden sm:table-cell">Phone</TableHead><TableHead className="pr-4 text-right">Bookings</TableHead>
           </TableRow></TableHeader>
           <TableBody>{[...people.values()].map((person) => <TableRow key={person.email}>
-            <TableCell className="pl-4 font-medium">{canSeeHistory
+            <TableCell className="pl-4 font-medium"><div className="flex items-center gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent/10 text-xs font-bold text-accent">{person.name.trim().slice(0, 1).toUpperCase() || 'C'}</span>{canSeeHistory
               ? <Link href={`/customers/${encodeURIComponent(person.email)}`} className="underline-offset-4 hover:underline">{person.name}</Link>
-              : person.name}</TableCell>
+              : person.name}</div></TableCell>
             <TableCell className="text-muted-foreground">{person.email}</TableCell>
             <TableCell className="hidden text-muted-foreground sm:table-cell">{person.phone || '—'}</TableCell>
             <TableCell className="pr-4 text-right"><Badge variant="secondary">{person.count}</Badge></TableCell>
