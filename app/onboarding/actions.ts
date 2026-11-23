@@ -93,7 +93,7 @@ export async function saveOnboardingHours(days: Array<{ day_of_week: number; is_
       !timePattern.test(day.end_time) || (day.is_active && day.start_time >= day.end_time)) ||
     !days.some((day) => day.is_active)) return { error: 'Set valid hours for at least one day.' }
   const { error } = await supabaseAdmin.from('availability_rules').upsert(days.map((day) => ({
-    booking_page_id: account.page!.id, ...day, break_start: null, break_end: null,
+    booking_page_id: account.page!.id, ...day,
   })), { onConflict: 'booking_page_id,day_of_week' })
   if (error) return { error: 'Could not save your hours.' }
   return { success: true }

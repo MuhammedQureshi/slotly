@@ -14,8 +14,12 @@ export default async function OnboardingPage() {
     .select('id, slug, business_type').eq('user_id', user.id).limit(1).maybeSingle() : { data: null }
   const { data: services } = page ? await supabaseAdmin.from('services').select('id, name')
     .eq('booking_page_id', page.id).order('sort_order') : { data: null }
+  const { data: hours, error: hoursError } = page ? await supabaseAdmin.from('availability_rules')
+    .select('day_of_week, is_active, start_time, end_time')
+    .eq('booking_page_id', page.id) : { data: null, error: null }
+  if (hoursError) throw new Error('Could not load your working hours.')
   const requestHeaders = await headers()
   const host = requestHeaders.get('host') ?? 'slotly-kohl.vercel.app'
   const origin = `${host.startsWith('localhost') ? 'http' : 'https'}://${host}`
-  return <OnboardingWizard initialPage={page} initialServices={services ?? []} origin={origin} />
+  return <OnboardingWizard initialPage={page} initialServices={services ?? []} initialHours={hours ?? []} origin={origin} />
 }
