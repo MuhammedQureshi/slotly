@@ -37,10 +37,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return <ToastProvider>
     <LiveBookingsRefresh initialVersion={bookingVersion} />
-    <div className="flex h-dvh flex-col overflow-hidden bg-secondary/30 md:flex-row">
+    <div className="owner-app flex h-dvh flex-col overflow-hidden bg-background text-foreground md:flex-row">
       <Sidebar userName={user?.firstName} bookingCount={bookingCount} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="hidden h-16 shrink-0 items-center border-b border-border bg-background px-6 md:flex">
+        <header className="hidden h-[76px] shrink-0 items-center border-b border-border bg-card px-8 md:flex">
           <DashboardSearch />
           <Link href="/bookings?new=true" className={buttonVariants({ className: 'ml-auto rounded-full px-4' })}>
             <Plus aria-hidden="true" className="size-4" /> New booking
@@ -50,8 +50,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </Link>
           <div className="ml-1.5"><UserButton /></div>
         </header>
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-6xl">{children}</div>
+        <main className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-8 lg:p-10">
+          <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>
     </div>

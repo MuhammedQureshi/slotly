@@ -36,7 +36,7 @@ export default function CreateServiceSheet({
       />
 
       <SheetContent className="sm:max-w-lg">
-        <SheetHeader className="border-b border-stone-200 px-6 py-5">
+        <SheetHeader className="border-b border-border px-6 py-5">
           <SheetTitle className="text-lg font-semibold">Create service</SheetTitle>
           <SheetDescription>Add a bookable option to your public page.</SheetDescription>
         </SheetHeader>

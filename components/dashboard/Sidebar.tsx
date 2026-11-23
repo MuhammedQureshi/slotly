@@ -51,9 +51,9 @@ type NavLinksProps = {
 
 function NavLinks({ pathname, activeTab, showUpgrade, bookingCount, onNavigate }: NavLinksProps) {
   return (
-    <nav className="flex-1 overflow-y-auto p-3" aria-label="Dashboard navigation">
+    <nav className="flex-1 overflow-y-auto px-3 py-6" aria-label="Dashboard navigation">
       {['Manage', 'Workspace'].map((group, groupIndex) => <div key={group} className={groupIndex ? 'mt-6' : ''}>
-        <p className="mb-2 px-2 text-xs font-semibold tracking-[0.14em] text-muted-foreground/70 uppercase">{group}</p>
+        <p className="mb-3 px-3 text-[11px] font-bold tracking-[0.12em] text-muted-foreground uppercase">{group}</p>
         <div className="space-y-1">{NAV.filter((item) => item.group === group).map(({ label, href, icon: Icon }) => {
         const baseHref = href.split('?')[0]
         const isAvailability = href.includes('tab=availability')
@@ -68,13 +68,13 @@ function NavLinks({ pathname, activeTab, showUpgrade, bookingCount, onNavigate }
             onClick={onNavigate}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
+              'flex h-11 items-center gap-3 rounded-xl px-3.5 text-sm font-semibold transition-colors',
               isActive
-                ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm'
                 : 'text-muted-foreground hover:bg-sidebar-accent/70 hover:text-sidebar-foreground'
             )}
           >
-            <Icon aria-hidden="true" className="size-4" />
+            <Icon aria-hidden="true" className="size-[18px]" />
             {label}
             {href === '/bookings' && bookingCount > 0 && (
               <Badge className="ml-auto min-w-5 justify-center rounded-full bg-accent px-1.5 text-[10px] text-accent-foreground">
@@ -96,7 +96,7 @@ function NavLinks({ pathname, activeTab, showUpgrade, bookingCount, onNavigate }
 function Brand() {
   return (
     <Link href="/dashboard" className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground">
-      <span className="grid size-7 place-items-center rounded-lg bg-primary font-display text-base text-primary-foreground">S</span>
+      <span className="grid size-9 place-items-center rounded-xl bg-accent text-base font-bold text-accent-foreground">S</span>
       Slotly
     </Link>
   )
@@ -154,8 +154,8 @@ export function Sidebar({ userName, bookingCount = 0 }: { userName?: string | nu
         </Sheet>
       </header>
 
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
-        <div className="flex h-16 items-center border-b border-sidebar-border px-5">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+        <div className="flex h-[76px] items-center border-b border-sidebar-border px-6">
           <Brand />
         </div>
         <NavLinks pathname={pathname} activeTab={activeTab} showUpgrade={showUpgrade} bookingCount={bookingCount} />

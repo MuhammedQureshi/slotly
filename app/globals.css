@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -95,4 +96,38 @@
   body {
     @apply bg-background font-body text-foreground;
   }
+}
+
+@layer components {
+  .owner-app {
+    --background: 36 33% 98%;
+    --foreground: 222 25% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 25% 16%;
+    --primary: 222 25% 16%;
+    --secondary: 35 23% 95%;
+    --muted: 35 23% 95%;
+    --muted-foreground: 218 10% 43%;
+    --accent: 242 72% 58%;
+    --border: 30 17% 88%;
+    --input: 30 17% 85%;
+    --ring: 242 72% 58%;
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 222 25% 16%;
+    --sidebar-accent: 243 62% 96%;
+    --sidebar-accent-foreground: 242 55% 38%;
+    --sidebar-border: 30 17% 90%;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  .owner-app h1, .owner-app h2, .owner-app h3 { letter-spacing: -0.035em; }
+  .owner-app [data-slot="card"] { border-radius: 1rem; box-shadow: 0 3px 18px -10px rgb(24 29 44 / 14%); }
+  .owner-app [data-slot="card-title"] { font-weight: 700; }
+  .owner-app [data-slot="table-head"] { font-size: 0.75rem; font-weight: 700; color: hsl(var(--muted-foreground)); }
+  .owner-app [data-slot="table-row"] { transition: background-color 150ms ease; }
+  .owner-app [data-slot="table-body"] [data-slot="table-row"]:hover { background: hsl(var(--secondary) / .6); }
+  .owner-app [data-slot="tabs-list"] { border-radius: .75rem; }
+  .owner-app [data-slot="button"] { font-weight: 600; }
+  .owner-app :is(input, textarea, select) { font-family: inherit; }
 }

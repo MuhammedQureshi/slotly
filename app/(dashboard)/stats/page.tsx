@@ -68,6 +68,6 @@ export default async function StatsPage({ searchParams }: {
         <CardHeader><CardDescription>{label}</CardDescription><CardTitle className="text-2xl font-semibold tabular-nums">{value}</CardTitle></CardHeader>
       </Card>)}
     </div>
-    <p className="text-xs text-stone-500">Service value is an estimate based on appointment prices. Slotly does not collect customer payments.</p>
+    <p className="text-xs text-muted-foreground">Service value is an estimate based on appointment prices. Slotly does not collect customer payments.</p>
   </div>
 }

@@ -48,7 +48,7 @@ export default async function BillingPage({
   const { success } = await searchParams
 
   if (!clerkUserId) {
-    return <p className="text-sm text-stone-600">Please sign in to view billing.</p>
+    return <p className="text-sm text-muted-foreground">Please sign in to view billing.</p>
   }
 
   const { data: user, error } = await supabaseAdmin
@@ -59,7 +59,7 @@ export default async function BillingPage({
 
   if (error || !user) {
     return (
-      <p className="text-sm text-stone-600">
+      <p className="text-sm text-muted-foreground">
         We could not load your billing account. Please try again.
       </p>
     )
@@ -77,19 +77,19 @@ export default async function BillingPage({
 
   return (
     <div className="space-y-8">
-      <header className="border-b border-stone-200 pb-6">
-        <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-amber-700 uppercase">
+      <header className="border-b border-border pb-6">
+        <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-accent uppercase">
           Billing
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-stone-950">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             Your Slotly plan
           </h1>
           <Badge variant={isPro ? 'default' : 'secondary'}>
             {isPro ? 'Pro' : 'Free'}
           </Badge>
         </div>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
           Upgrade securely through Stripe, or manage your existing subscription.
         </p>
       </header>
@@ -122,7 +122,7 @@ export default async function BillingPage({
       )}
 
       {subscription && (
-        <p className="text-sm text-stone-600">
+        <p className="text-sm text-muted-foreground">
           Subscription: {subscription.status.replaceAll('_', ' ')}
           {subscription.cancel_at_period_end ? ' · Ends at the close of the paid period' : ''}
           {subscription.items.data[0]?.current_period_end
@@ -131,16 +131,16 @@ export default async function BillingPage({
         </p>
       )}
       {(subscription?.status === 'past_due' || subscription?.status === 'unpaid') && (
-        <p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <p role="alert" className="rounded-xl border border-amber-200 bg-accent/10 p-4 text-sm text-amber-900">
           Stripe could not collect your latest payment. Please update your payment method in Manage subscription.
         </p>
       )}
 
       <div className="grid gap-5 md:grid-cols-2">
-        <Card className={!isPro ? 'ring-2 ring-stone-300' : undefined}>
+        <Card className={!isPro ? 'ring-2 ring-border' : undefined}>
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
-              <span className="grid size-10 place-items-center rounded-xl bg-stone-100 text-stone-700">
+              <span className="grid size-10 place-items-center rounded-xl bg-secondary text-foreground/80">
                 <CalendarDays aria-hidden="true" className="size-5" />
               </span>
               {!isPro && <Badge variant="secondary">Current plan</Badge>}
@@ -150,28 +150,28 @@ export default async function BillingPage({
           </CardHeader>
           <CardContent className="space-y-6">
             <p>
-              <span className="text-4xl font-semibold tracking-tight text-stone-950">£0</span>
+              <span className="text-4xl font-semibold tracking-tight text-foreground">£0</span>
             </p>
-            <div className="flex items-start gap-2 text-stone-700">
+            <div className="flex items-start gap-2 text-foreground/80">
               <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-emerald-600" />
               <div>
                 <p className="font-medium">Up to {FREE_MONTHLY_BOOKING_LIMIT} bookings per month</p>
-                <p className="mt-0.5 text-xs text-stone-500">Your allowance resets each month.</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Your allowance resets each month.</p>
               </div>
             </div>
-            <ul className="space-y-2 text-sm text-stone-700">{sharedFeatures.map((feature) =>
+            <ul className="space-y-2 text-sm text-foreground/80">{sharedFeatures.map((feature) =>
               <li key={feature} className="flex gap-2"><Check aria-hidden="true" className="size-4 shrink-0 text-emerald-600" />{feature}</li>
             )}</ul>
           </CardContent>
         </Card>
 
-        <Card className={!isPro ? 'ring-2 ring-amber-500' : 'ring-2 ring-emerald-500'}>
+        <Card className={!isPro ? 'ring-2 ring-accent' : 'ring-2 ring-emerald-500'}>
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
-              <span className="grid size-10 place-items-center rounded-xl bg-amber-50 text-amber-700">
+              <span className="grid size-10 place-items-center rounded-xl bg-accent/10 text-accent">
                 <CreditCard aria-hidden="true" className="size-5" />
               </span>
-              <Badge className={isPro ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-900'}>
+              <Badge className={isPro ? 'bg-emerald-100 text-emerald-900' : 'bg-accent/10 text-accent'}>
                 {isPro ? 'Current plan' : 'Recommended'}
               </Badge>
             </div>
@@ -180,17 +180,17 @@ export default async function BillingPage({
           </CardHeader>
           <CardContent className="space-y-6">
             <p>
-              <span className="text-4xl font-semibold tracking-tight text-stone-950">£{PRO_MONTHLY_PRICE_GBP}</span>
-              <span className="text-stone-500"> / month</span>
+              <span className="text-4xl font-semibold tracking-tight text-foreground">£{PRO_MONTHLY_PRICE_GBP}</span>
+              <span className="text-muted-foreground"> / month</span>
             </p>
             <ul className="space-y-3">
-              <li className="text-sm text-stone-600">Everything in Free, plus:</li>
+              <li className="text-sm text-muted-foreground">Everything in Free, plus:</li>
               {proFeatures.map(([feature, description]) => (
-                <li key={feature} className="flex items-start gap-2 text-stone-700">
+                <li key={feature} className="flex items-start gap-2 text-foreground/80">
                   <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-emerald-600" />
                   <div>
                     <p className="font-medium">{feature}</p>
-                    <p className="mt-0.5 text-xs leading-5 text-stone-500">{description}</p>
+                    <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{description}</p>
                   </div>
                 </li>
               ))}
@@ -202,8 +202,8 @@ export default async function BillingPage({
       </div>
 
       <Card>
-        <CardContent className="flex items-start gap-3 text-sm leading-6 text-stone-600">
-          <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-stone-700" />
+        <CardContent className="flex items-start gap-3 text-sm leading-6 text-muted-foreground">
+          <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-foreground/80" />
           <p>
             Payments and card details are handled securely by Stripe. You can manage or cancel your
             Pro subscription from the billing portal.

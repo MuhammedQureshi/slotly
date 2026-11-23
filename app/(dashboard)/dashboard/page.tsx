@@ -69,18 +69,19 @@ export default async function DashboardPage() {
     : 'Free'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{greeting}, {firstName}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Here&apos;s what&apos;s happening with your business.</p>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-accent">Overview</p>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{greeting}, {firstName}</h1>
+          <p className="mt-2 text-base text-muted-foreground">Here&apos;s what&apos;s happening with your business.</p>
         </div>
         <p className="hidden pt-2 text-sm text-muted-foreground sm:block">
           {new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: timezone }).format(now)}
         </p>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2.5">
+      <div className="flex flex-wrap items-center gap-2.5 border-b pb-7">
         <Link href="/bookings?new=true" className={buttonVariants({ className: 'rounded-full bg-accent px-4 text-accent-foreground hover:bg-accent/85' })}>
           <Plus aria-hidden="true" /> Add booking
         </Link>

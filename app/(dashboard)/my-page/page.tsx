@@ -51,10 +51,10 @@ export default async function Mypage({ searchParams }: { searchParams: Promise<{
   if (!bookingPage) {
     return (
       <div className="space-y-8">
-        <div className="border-b border-stone-200 pb-6">
-          <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-amber-700 uppercase">Online presence</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-stone-950">My Page</h1>
-          <p className="mt-2 text-sm leading-6 text-stone-600">Create the public page your customers will use to book.</p>
+        <div className="border-b border-border pb-6">
+          <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-accent uppercase">Online presence</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">My Page</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Create the public page your customers will use to book.</p>
         </div>
         <MyPageForm />
       </div>
@@ -102,11 +102,11 @@ export default async function Mypage({ searchParams }: { searchParams: Promise<{
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-5 border-b border-stone-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-5 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-amber-700 uppercase">Online presence</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-stone-950">My Page</h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-stone-600">Make your booking page your own and set the hours customers can book.</p>
+          <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-accent uppercase">Online presence</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">My Page</h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Make your booking page your own and set the hours customers can book.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <CopyBookingLink slug={bookingPage.slug} />

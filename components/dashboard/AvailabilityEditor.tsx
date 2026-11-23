@@ -154,7 +154,7 @@ export default function AvailabilityEditor({
                   ))}
                 </SelectContent>
               </Select>
-              <span className="text-xs text-stone-400">to</span>
+              <span className="text-xs text-muted-foreground">to</span>
               <Select
                 value={day.end_time}
                 onValueChange={val => val && updateTime(day.day_of_week, 'end_time', val)}
@@ -179,7 +179,7 @@ export default function AvailabilityEditor({
             </div>
             </>
           ) : (
-            <p className="mt-2 text-xs text-stone-400">Unavailable</p>
+            <p className="mt-2 text-xs text-muted-foreground">Unavailable</p>
           )}
         </div>
         ))}

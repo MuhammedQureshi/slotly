@@ -61,11 +61,14 @@ export default async function Bookings({
     : bookings ?? []
 
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap gap-2">
+    <div className="space-y-7">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b pb-6">
+        <div><p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-accent">Appointments</p><h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Bookings</h1><p className="mt-2 text-base text-muted-foreground">Manage your calendar and customer appointments.</p></div>
+      <div className="flex flex-wrap gap-2">
         <a href="/api/export?kind=appointments" className={buttonVariants({ variant: 'outline' })}><Download aria-hidden="true" /> Appointments CSV</a>
         <a href="/api/export?kind=customers" className={buttonVariants({ variant: 'outline' })}><Download aria-hidden="true" /> Customers CSV</a>
       </div>
+      </header>
       <ManualBookingForm
         key={params.new === 'true' ? 'open' : 'closed'}
         services={services ?? []}

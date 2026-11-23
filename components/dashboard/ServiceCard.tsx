@@ -86,7 +86,7 @@ export default function ServiceCard({
     <Card className="h-full">
       <CardContent className="flex flex-1 items-start justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="truncate text-lg font-semibold tracking-tight text-stone-950">
+          <h2 className="truncate text-lg font-semibold tracking-tight text-foreground">
             {service.name}
           </h2>
 
@@ -102,7 +102,7 @@ export default function ServiceCard({
           </div>
 
           {service.description && (
-            <p className="mt-4 line-clamp-3 text-sm leading-6 text-stone-600">
+            <p className="mt-4 line-clamp-3 text-sm leading-6 text-muted-foreground">
               {service.description}
             </p>
           )}
@@ -112,7 +112,7 @@ export default function ServiceCard({
       <CardFooter className="mt-auto gap-2">
         <Button
           variant="outline"
-          className="flex-1 border-stone-200"
+          className="flex-1 border-border"
           onClick={() => setIsEditOpen(true)}
         >
           <Pencil aria-hidden="true" />
@@ -124,7 +124,7 @@ export default function ServiceCard({
             onOpenChange={setIsEditOpen}
           >
             <SheetContent className="sm:max-w-lg">
-              <SheetHeader className="border-b border-stone-200 px-6 py-5">
+              <SheetHeader className="border-b border-border px-6 py-5">
                 <SheetTitle className="text-lg font-semibold">
                   Edit {service.name}
                 </SheetTitle>

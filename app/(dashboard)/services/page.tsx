@@ -44,13 +44,13 @@ const { data: services } = await supabase
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-5 border-b border-stone-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-5 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-amber-700 uppercase">
+          <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-accent uppercase">
             Booking menu
           </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-stone-950">Services</h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-stone-600">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Services</h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
             These are the services that your customers can book.
           </p>
         </div>
@@ -68,11 +68,11 @@ const { data: services } = await supabase
         </div>
       ) : (
         <Card className="border border-dashed"><CardContent className="flex min-h-64 flex-col items-center justify-center text-center">
-          <span className="grid size-12 place-items-center rounded-full bg-amber-50 text-amber-700">
+          <span className="grid size-12 place-items-center rounded-full bg-accent/10 text-accent">
             <Scissors aria-hidden="true" className="size-5" />
           </span>
-          <h2 className="mt-4 text-base font-semibold text-stone-950">Add your first service</h2>
-          <p className="mt-1 max-w-sm text-sm leading-6 text-stone-600">
+          <h2 className="mt-4 text-base font-semibold text-foreground">Add your first service</h2>
+          <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
             Create a service with a duration and price so customers can start booking.
           </p>
           <div className="mt-5">

@@ -30,7 +30,7 @@ export function BillingActionForm({ kind }: BillingActionFormProps) {
         size="lg"
         variant={kind === 'checkout' ? 'default' : 'outline'}
         disabled={isPending}
-        className={kind === 'checkout' ? 'w-full bg-amber-600 text-white hover:bg-amber-700' : 'w-full'}
+        className={kind === 'checkout' ? 'w-full bg-accent text-accent-foreground hover:bg-accent/90' : 'w-full'}
       >
         {isPending && <LoaderCircle aria-hidden="true" className="animate-spin" />}
         {isPending ? pendingLabel : label}
